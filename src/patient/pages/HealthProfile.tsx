@@ -1,4 +1,6 @@
 import { toast } from "sonner";
+import { useState } from "react";
+import { PatientModal } from "../components/PatientModal";
 
 /* ─── Shared ─── */
 
@@ -83,6 +85,10 @@ function PersonalVitals() {
    ═══════════════════════════════════════════ */
 
 function MedicalHistory() {
+    const [isConditionsOpen, setConditionsOpen] = useState(false);
+    const [isMedsOpen, setMedsOpen] = useState(false);
+    const [isAllergiesOpen, setAllergiesOpen] = useState(false);
+
     return (
         <div style={cardStyle} className="p-5">
             <p style={sectionTitle}>MEDICAL HISTORY</p>
@@ -91,7 +97,7 @@ function MedicalHistory() {
             <div className="mt-4">
                 <div className="flex items-center justify-between">
                     <p style={{ fontSize: "0.84rem", fontWeight: 700, color: "#1a1d2e" }}>Conditions</p>
-                    <button style={editBtn} onClick={() => toast("Edit conditions")}>Edit</button>
+                    <button style={editBtn} onClick={() => setConditionsOpen(true)}>Edit</button>
                 </div>
                 <p className="mt-1.5" style={{ fontSize: "0.78rem", color: "#8892a8" }}>None reported</p>
             </div>
@@ -102,7 +108,7 @@ function MedicalHistory() {
             <div>
                 <div className="flex items-center justify-between">
                     <p style={{ fontSize: "0.84rem", fontWeight: 700, color: "#1a1d2e" }}>Medications</p>
-                    <button style={editBtn} onClick={() => toast("Edit medications")}>Edit</button>
+                    <button style={editBtn} onClick={() => setMedsOpen(true)}>Edit</button>
                 </div>
                 <ul className="mt-1.5 flex flex-col gap-1">
                     {["Generic Semaglutide 0.5mg", "Metformin 500mg", "Vitamin B12"].map((m) => (
@@ -132,10 +138,50 @@ function MedicalHistory() {
             <div>
                 <div className="flex items-center justify-between">
                     <p style={{ fontSize: "0.84rem", fontWeight: 700, color: "#1a1d2e" }}>Allergies</p>
-                    <button style={editBtn} onClick={() => toast("Edit allergies")}>Edit</button>
+                    <button style={editBtn} onClick={() => setAllergiesOpen(true)}>Edit</button>
                 </div>
                 <p className="mt-1.5" style={{ fontSize: "0.78rem", color: "#1a1d2e" }}>Penicillin</p>
             </div>
+
+            {/* CONDITIONS MODAL */}
+            <PatientModal isOpen={isConditionsOpen} onClose={() => setConditionsOpen(false)} title="Edit Conditions">
+                <div className="flex flex-col gap-3">
+                    <p style={{ fontSize: "0.76rem", color: "#4a5068" }}>Update your reported medical conditions.</p>
+                    <textarea
+                        className="w-full p-3 outline-none"
+                        style={{ backgroundColor: "#f3f4f8", border: "1px solid #e2e6ef", borderRadius: 8, fontSize: "0.82rem", minHeight: 100 }}
+                        placeholder="e.g., Hypertension, PCOS..."
+                    />
+                    <button onClick={() => { toast.success("Conditions updated"); setConditionsOpen(false); }} className="w-full py-2.5 mt-2 rounded-xl transition-opacity hover:opacity-90" style={{ backgroundColor: "#2563eb", color: "#fff", fontSize: "0.82rem", fontWeight: 600 }}>Save Changes</button>
+                </div>
+            </PatientModal>
+
+            {/* MEDICATIONS MODAL */}
+            <PatientModal isOpen={isMedsOpen} onClose={() => setMedsOpen(false)} title="Edit Medications">
+                <div className="flex flex-col gap-3">
+                    <p style={{ fontSize: "0.76rem", color: "#4a5068" }}>Add or remove other medications you are taking.</p>
+                    <textarea
+                        className="w-full p-3 outline-none"
+                        style={{ backgroundColor: "#f3f4f8", border: "1px solid #e2e6ef", borderRadius: 8, fontSize: "0.82rem", minHeight: 100 }}
+                        defaultValue="Generic Semaglutide 0.5mg&#10;Metformin 500mg&#10;Vitamin B12"
+                    />
+                    <button onClick={() => { toast.success("Medications updated"); setMedsOpen(false); }} className="w-full py-2.5 mt-2 rounded-xl transition-opacity hover:opacity-90" style={{ backgroundColor: "#2563eb", color: "#fff", fontSize: "0.82rem", fontWeight: 600 }}>Save Changes</button>
+                </div>
+            </PatientModal>
+
+            {/* ALLERGIES MODAL */}
+            <PatientModal isOpen={isAllergiesOpen} onClose={() => setAllergiesOpen(false)} title="Edit Allergies">
+                <div className="flex flex-col gap-3">
+                    <p style={{ fontSize: "0.76rem", color: "#4a5068" }}>List any drug or food allergies.</p>
+                    <input
+                        type="text"
+                        className="w-full p-3 outline-none"
+                        style={{ backgroundColor: "#f3f4f8", border: "1px solid #e2e6ef", borderRadius: 8, fontSize: "0.82rem" }}
+                        defaultValue="Penicillin"
+                    />
+                    <button onClick={() => { toast.success("Allergies updated"); setAllergiesOpen(false); }} className="w-full py-2.5 mt-2 rounded-xl transition-opacity hover:opacity-90" style={{ backgroundColor: "#2563eb", color: "#fff", fontSize: "0.82rem", fontWeight: 600 }}>Save Changes</button>
+                </div>
+            </PatientModal>
         </div>
     );
 }
@@ -145,6 +191,10 @@ function MedicalHistory() {
    ═══════════════════════════════════════════ */
 
 function CheckinsWeightLog() {
+    const [isCheckinOpen, setCheckinOpen] = useState(false);
+    const [isWeightOpen, setWeightOpen] = useState(false);
+    const [weightInput, setWeightInput] = useState("");
+
     const weightLog = [
         { date: "Feb 20, 2026", weight: "94.8 kg" },
         { date: "Feb 13, 2026", weight: "95.5 kg" },
@@ -155,7 +205,7 @@ function CheckinsWeightLog() {
         <div style={cardStyle} className="p-5">
             {/* Monthly check-in CTA */}
             <button
-                onClick={() => toast.success("Check-in started!")}
+                onClick={() => setCheckinOpen(true)}
                 className="w-full py-3 rounded-xl transition-colors hover:opacity-90"
                 style={{
                     backgroundColor: "#ecfdf5",
@@ -170,11 +220,11 @@ function CheckinsWeightLog() {
 
             <div style={{ ...divider, margin: "16px 0" }} />
 
-            {/* Weight Log */}
+            {/* Weight Log Header */}
             <div className="flex items-center justify-between">
                 <p style={{ fontSize: "0.84rem", fontWeight: 700, color: "#1a1d2e" }}>Weight Log</p>
                 <button
-                    onClick={() => toast.success("Weight logged!")}
+                    onClick={() => setWeightOpen(true)}
                     className="px-3 py-1.5 rounded-lg hover:opacity-90 transition-opacity"
                     style={{
                         backgroundColor: "#16a34a",
@@ -188,6 +238,7 @@ function CheckinsWeightLog() {
                 </button>
             </div>
 
+            {/* Weight Log List */}
             <div className="flex flex-col mt-3">
                 {weightLog.map((entry, i) => (
                     <div
@@ -200,6 +251,29 @@ function CheckinsWeightLog() {
                     </div>
                 ))}
             </div>
+
+            {/* CHECKIN MODAL */}
+            <PatientModal isOpen={isCheckinOpen} onClose={() => setCheckinOpen(false)} title="Monthly Check-In">
+                <div className="flex flex-col gap-4">
+                    <p style={{ fontSize: "0.82rem", color: "#4a5068" }}>How have you been feeling on your current dose?</p>
+                    <div className="flex gap-2">
+                        {["Great", "Okay", "Poor"].map(opt => (
+                            <button key={opt} className="flex-1 py-2 rounded-lg border border-[#e2e6ef] text-[#4a5068] text-[0.76rem] font-semibold hover:bg-[#f3f4f8] focus:bg-[#ecfdf5] focus:border-[#16a34a] focus:text-[#16a34a]">{opt}</button>
+                        ))}
+                    </div>
+                    <p style={{ fontSize: "0.82rem", color: "#4a5068", marginTop: 8 }}>Any side effects to report?</p>
+                    <textarea className="w-full p-3 outline-none" style={{ backgroundColor: "#f3f4f8", border: "1px solid #e2e6ef", borderRadius: 8, fontSize: "0.82rem", minHeight: 60 }} placeholder="None..." />
+                    <button onClick={() => { toast.success("Check-in complete!"); setCheckinOpen(false); }} className="w-full py-2.5 mt-2 rounded-xl transition-opacity hover:opacity-90" style={{ backgroundColor: "#16a34a", color: "#fff", fontSize: "0.82rem", fontWeight: 600 }}>Submit Check-In</button>
+                </div>
+            </PatientModal>
+
+            {/* WEIGHT MODAL */}
+            <PatientModal isOpen={isWeightOpen} onClose={() => setWeightOpen(false)} title="Log Weight">
+                <div className="flex flex-col gap-3">
+                    <input type="number" placeholder="Enter weight in kg" value={weightInput} onChange={e => setWeightInput(e.target.value)} className="w-full p-3 outline-none" style={{ backgroundColor: "#f3f4f8", border: "1px solid #e2e6ef", borderRadius: 8, fontSize: "0.88rem" }} />
+                    <button onClick={() => { if (weightInput) { toast.success(`Logged ${weightInput} kg`); setWeightOpen(false); setWeightInput(""); } }} className="w-full py-2.5 mt-2 rounded-xl transition-opacity hover:opacity-90" style={{ backgroundColor: "#16a34a", color: "#fff", fontSize: "0.82rem", fontWeight: 600 }}>Save Weight</button>
+                </div>
+            </PatientModal>
         </div>
     );
 }

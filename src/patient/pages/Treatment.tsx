@@ -1,6 +1,8 @@
 import { useNavigate } from "react-router";
 import { usePatientPath } from "../PatientBaseContext";
 import { toast } from "sonner";
+import { useState } from "react";
+import { PatientModal } from "../components/PatientModal";
 
 /* ─── Shared ─── */
 
@@ -216,6 +218,15 @@ function DoseJourney() {
 function WeightProgress() {
     const barHeights = [95, 85, 72, 60, 52, 48, 42, 38];
     const months = ["Nov", "Dec", "Jan", "Feb"];
+    const [isWeightModalOpen, setWeightModalOpen] = useState(false);
+    const [weightInput, setWeightInput] = useState("");
+
+    const handleLogWeight = () => {
+        if (!weightInput) return;
+        toast.success(`Weight logged: ${weightInput} kg!`);
+        setWeightModalOpen(false);
+        setWeightInput("");
+    };
 
     return (
         <div style={cardStyle} className="p-5">
@@ -223,8 +234,8 @@ function WeightProgress() {
             <div className="flex items-center justify-between">
                 <p style={sectionTitle}>WEIGHT PROGRESS</p>
                 <button
-                    onClick={() => toast.success("Weight logged!")}
-                    className="px-3 py-1 rounded-lg"
+                    onClick={() => setWeightModalOpen(true)}
+                    className="px-3 py-1 rounded-lg transition-opacity hover:opacity-80"
                     style={{
                         backgroundColor: "#ecfdf5",
                         border: "1px solid #bbf7d0",
@@ -275,6 +286,50 @@ function WeightProgress() {
                     </span>
                 ))}
             </div>
+
+            {/* WEIGHT MODAL */}
+            <PatientModal
+                isOpen={isWeightModalOpen}
+                onClose={() => setWeightModalOpen(false)}
+                title="Log Current Weight"
+            >
+                <div>
+                    <label style={{ fontSize: "0.72rem", fontWeight: 600, color: "#8892a8", textTransform: "uppercase" }}>
+                        Current Weight (kg)
+                    </label>
+                    <input
+                        type="number"
+                        placeholder="e.g. 94.5"
+                        value={weightInput}
+                        onChange={(e) => setWeightInput(e.target.value)}
+                        className="w-full mt-2 outline-none transition-colors focus:border-[#2563eb]"
+                        style={{
+                            backgroundColor: "#f3f4f8",
+                            border: "1px solid #e2e6ef",
+                            borderRadius: 10,
+                            padding: "10px 14px",
+                            fontSize: "0.88rem",
+                            color: "#1a1d2e",
+                        }}
+                    />
+                    <div className="flex gap-3 mt-6">
+                        <button
+                            onClick={() => setWeightModalOpen(false)}
+                            className="flex-1 py-2.5 rounded-xl hover:bg-[#f3f4f8] transition-colors"
+                            style={{ border: "1px solid #e2e6ef", fontSize: "0.82rem", fontWeight: 600, color: "#4a5068" }}
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            onClick={handleLogWeight}
+                            className="flex-1 py-2.5 rounded-xl hover:opacity-90 transition-opacity"
+                            style={{ backgroundColor: "#16a34a", border: "none", fontSize: "0.82rem", fontWeight: 600, color: "#fff" }}
+                        >
+                            Save Log
+                        </button>
+                    </div>
+                </div>
+            </PatientModal>
         </div>
     );
 }
@@ -286,6 +341,28 @@ function WeightProgress() {
 function ActionButtons() {
     const navigate = useNavigate();
     const p = usePatientPath();
+    const [isSideEffectOpen, setSideEffectOpen] = useState(false);
+    const [isPauseOpen, setPauseOpen] = useState(false);
+    const [selectedEffects, setSelectedEffects] = useState<string[]>([]);
+
+    const handleReport = () => {
+        toast.success("Side effects reported to your doctor.");
+        setSideEffectOpen(false);
+        setSelectedEffects([]);
+    };
+
+    const handlePause = () => {
+        toast("Treatment has been paused.");
+        setPauseOpen(false);
+    };
+
+    const toggleEffect = (eff: string) => {
+        setSelectedEffects(prev =>
+            prev.includes(eff) ? prev.filter(e => e !== eff) : [...prev, eff]
+        );
+    };
+
+    const effectsList = ["Nausea", "Headache", "Fatigue", "Dizziness", "Stomach Pain", "Other"];
 
     return (
         <div className="grid grid-cols-3 gap-2">
@@ -303,7 +380,7 @@ function ActionButtons() {
                 💬 Message Doctor
             </button>
             <button
-                onClick={() => toast("Side effect report submitted")}
+                onClick={() => setSideEffectOpen(true)}
                 className="py-3 rounded-xl hover:bg-[#f3f4f8] transition-colors"
                 style={{
                     border: "1px solid #e2e6ef",
@@ -316,10 +393,10 @@ function ActionButtons() {
                 ⚠️ Report Side Effect
             </button>
             <button
-                onClick={() => toast("Treatment paused")}
-                className="py-3 rounded-xl transition-colors"
+                onClick={() => setPauseOpen(true)}
+                className="py-3 rounded-xl transition-colors hover:bg-[#fff7ed]"
                 style={{
-                    backgroundColor: "#fff7ed",
+                    backgroundColor: "#fff",
                     border: "1px solid #fed7aa",
                     fontSize: "0.78rem",
                     fontWeight: 600,
@@ -328,6 +405,91 @@ function ActionButtons() {
             >
                 ⏸ Pause Treatment
             </button>
+
+            {/* SIDE EFFECTS MODAL */}
+            <PatientModal
+                isOpen={isSideEffectOpen}
+                onClose={() => setSideEffectOpen(false)}
+                title="Report Side Effects"
+            >
+                <div className="flex flex-col gap-4">
+                    <p style={{ fontSize: "0.84rem", color: "#4a5068", lineHeight: 1.5 }}>
+                        Select any symptoms you have experienced recently. Your doctor will review these.
+                    </p>
+                    <div className="grid grid-cols-2 gap-2 mt-2">
+                        {effectsList.map(eff => {
+                            const active = selectedEffects.includes(eff);
+                            return (
+                                <button
+                                    key={eff}
+                                    onClick={() => toggleEffect(eff)}
+                                    className="px-3 py-2 rounded-lg text-left transition-colors"
+                                    style={{
+                                        border: active ? "1px solid #2563eb" : "1px solid #e2e6ef",
+                                        backgroundColor: active ? "#eff6ff" : "#f3f4f8",
+                                        color: active ? "#2563eb" : "#4a5068",
+                                        fontSize: "0.76rem",
+                                        fontWeight: active ? 600 : 500,
+                                    }}
+                                >
+                                    {eff}
+                                </button>
+                            );
+                        })}
+                    </div>
+                    <div className="mt-2">
+                        <label style={{ fontSize: "0.72rem", fontWeight: 600, color: "#8892a8", textTransform: "uppercase" }}>
+                            Additional Notes (Optional)
+                        </label>
+                        <textarea
+                            className="w-full mt-2 outline-none p-3 rounded-lg"
+                            style={{ backgroundColor: "#f3f4f8", border: "1px solid #e2e6ef", fontSize: "0.82rem", minHeight: 80, resize: "none" }}
+                            placeholder="Describe severity or other details..."
+                        />
+                    </div>
+                    <button
+                        onClick={handleReport}
+                        className="w-full py-2.5 mt-2 rounded-xl hover:opacity-90 transition-opacity"
+                        style={{ backgroundColor: "#2563eb", color: "#fff", fontSize: "0.82rem", fontWeight: 600 }}
+                    >
+                        Submit Report
+                    </button>
+                </div>
+            </PatientModal>
+
+            {/* PAUSE MODAL */}
+            <PatientModal
+                isOpen={isPauseOpen}
+                onClose={() => setPauseOpen(false)}
+                title="Pause Treatment?"
+            >
+                <div className="flex flex-col gap-4">
+                    <div className="p-4 rounded-xl" style={{ backgroundColor: "#fff7ed", border: "1px solid #fed7aa" }}>
+                        <p style={{ fontSize: "0.84rem", fontWeight: 600, color: "#9a3412" }}>
+                            Pausing stops upcoming orders and billing.
+                        </p>
+                        <p style={{ fontSize: "0.76rem", color: "#9a3412", marginTop: 4, lineHeight: 1.5 }}>
+                            Your active prescriptions will remain valid, but you won't receive your next shipment until you resume.
+                        </p>
+                    </div>
+                    <div className="flex gap-3 mt-4">
+                        <button
+                            onClick={() => setPauseOpen(false)}
+                            className="flex-1 py-2.5 rounded-xl hover:bg-[#f3f4f8] transition-colors"
+                            style={{ border: "1px solid #e2e6ef", fontSize: "0.82rem", fontWeight: 600, color: "#4a5068" }}
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            onClick={handlePause}
+                            className="flex-1 py-2.5 rounded-xl hover:opacity-90 transition-opacity"
+                            style={{ backgroundColor: "#ea580c", border: "none", fontSize: "0.82rem", fontWeight: 600, color: "#fff" }}
+                        >
+                            Confirm Pause
+                        </button>
+                    </div>
+                </div>
+            </PatientModal>
         </div>
     );
 }

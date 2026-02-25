@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { toast } from "sonner";
+import { PatientModal } from "../components/PatientModal";
 
 /* ─── Shared ─── */
 
@@ -89,6 +90,10 @@ function SettingsTabs({
    ═══════════════════════════════════════════ */
 
 function SubscriptionCard() {
+    const [isPlanOpen, setPlanOpen] = useState(false);
+    const [isPauseOpen, setPauseOpen] = useState(false);
+    const [isCancelOpen, setCancelOpen] = useState(false);
+
     return (
         <div className="p-5" style={{ ...cardStyle, border: "2px solid #bbf7d0" }}>
             {/* Header */}
@@ -115,27 +120,64 @@ function SubscriptionCard() {
             {/* Actions */}
             <div className="flex items-center gap-2 mt-3">
                 <button
-                    onClick={() => toast("Change plan")}
+                    onClick={() => setPlanOpen(true)}
                     className="px-3.5 py-2 rounded-lg hover:bg-[#f3f4f8] transition-colors"
                     style={{ border: "1px solid #e2e6ef", fontSize: "0.76rem", fontWeight: 600, color: "#1a1d2e", background: "#fff" }}
                 >
                     Change Plan
                 </button>
                 <button
-                    onClick={() => toast("Subscription paused")}
+                    onClick={() => setPauseOpen(true)}
                     className="px-3.5 py-2 rounded-lg transition-colors"
                     style={{ border: "1px solid #fed7aa", fontSize: "0.76rem", fontWeight: 600, color: "#ea580c", background: "#fff" }}
                 >
                     Pause
                 </button>
                 <button
-                    onClick={() => toast("Cancellation requested")}
+                    onClick={() => setCancelOpen(true)}
                     className="px-3.5 py-2 rounded-lg transition-colors"
                     style={{ border: "1px solid #fecaca", fontSize: "0.76rem", fontWeight: 600, color: "#dc2626", background: "#fff" }}
                 >
                     Cancel
                 </button>
             </div>
+
+            {/* PLAN MODAL */}
+            <PatientModal isOpen={isPlanOpen} onClose={() => setPlanOpen(false)} title="Change Plan">
+                <div className="flex flex-col gap-3">
+                    <p style={{ fontSize: "0.82rem", color: "#4a5068" }}>Select a new subscription tier. Changes take effect on your next billing date.</p>
+                    <div className="flex flex-col gap-2 mt-2">
+                        {["3 Month Commitment - 649 SAR/mo", "6 Month Commitment - 627 SAR/mo (Current)", "Monthly - 799 SAR/mo"].map(plan => (
+                            <div key={plan} className="flex items-center justify-between p-3 rounded-lg border border-[#e2e6ef] hover:border-[#2563eb] cursor-pointer">
+                                <span style={{ fontSize: "0.82rem", color: "#1a1d2e", fontWeight: plan.includes("Current") ? 700 : 500 }}>{plan}</span>
+                            </div>
+                        ))}
+                    </div>
+                    <button onClick={() => { toast.success("Plan updated!"); setPlanOpen(false); }} className="w-full py-2.5 mt-2 rounded-xl transition-opacity hover:opacity-90" style={{ backgroundColor: "#2563eb", color: "#fff", fontSize: "0.82rem", fontWeight: 600 }}>Confirm Change</button>
+                </div>
+            </PatientModal>
+
+            {/* PAUSE MODAL */}
+            <PatientModal isOpen={isPauseOpen} onClose={() => setPauseOpen(false)} title="Pause Subscription">
+                <div className="flex flex-col gap-4">
+                    <div className="p-4 rounded-xl" style={{ backgroundColor: "#fff7ed", border: "1px solid #fed7aa" }}>
+                        <p style={{ fontSize: "0.84rem", fontWeight: 600, color: "#9a3412" }}>Pausing your subscription</p>
+                        <p style={{ fontSize: "0.76rem", color: "#9a3412", marginTop: 4, lineHeight: 1.5 }}>You won't be billed or receive shipments until you resume. Active prescriptions remain valid.</p>
+                    </div>
+                    <button onClick={() => { toast.success("Subscription paused"); setPauseOpen(false); }} className="w-full py-2.5 rounded-xl transition-opacity hover:opacity-90 mt-2" style={{ backgroundColor: "#ea580c", color: "#fff", border: "none", fontSize: "0.82rem", fontWeight: 600 }}>Confirm Pause</button>
+                </div>
+            </PatientModal>
+
+            {/* CANCEL MODAL */}
+            <PatientModal isOpen={isCancelOpen} onClose={() => setCancelOpen(false)} title="Cancel Subscription">
+                <div className="flex flex-col gap-4">
+                    <div className="p-4 rounded-xl" style={{ backgroundColor: "#fef2f2", border: "1px solid #fecaca" }}>
+                        <p style={{ fontSize: "0.84rem", fontWeight: 600, color: "#dc2626" }}>Are you sure you want to cancel?</p>
+                        <p style={{ fontSize: "0.76rem", color: "#dc2626", marginTop: 4, lineHeight: 1.5 }}>This will terminate your medical plan and stop all future orders. You will lose access to doctor messaging after 30 days.</p>
+                    </div>
+                    <button onClick={() => { toast("Cancellation requested"); setCancelOpen(false); }} className="w-full py-2.5 rounded-xl transition-opacity hover:opacity-90 mt-2" style={{ backgroundColor: "#dc2626", color: "#fff", border: "none", fontSize: "0.82rem", fontWeight: 600 }}>Confirm Cancellation</button>
+                </div>
+            </PatientModal>
         </div>
     );
 }
@@ -145,6 +187,8 @@ function SubscriptionCard() {
    ═══════════════════════════════════════════ */
 
 function PaymentFailedAlert() {
+    const [isCardOpen, setCardOpen] = useState(false);
+
     return (
         <div
             className="flex items-center gap-4 p-4"
@@ -162,12 +206,24 @@ function PaymentFailedAlert() {
                 </p>
             </div>
             <button
-                onClick={() => toast("Update card dialog")}
+                onClick={() => setCardOpen(true)}
                 className="shrink-0 px-4 py-2 rounded-lg hover:opacity-90 transition-opacity"
                 style={{ backgroundColor: "#dc2626", color: "#fff", fontSize: "0.76rem", fontWeight: 600, border: "none" }}
             >
                 Update Card
             </button>
+
+            <PatientModal isOpen={isCardOpen} onClose={() => setCardOpen(false)} title="Update Payment Method">
+                <div className="flex flex-col gap-4">
+                    <p style={{ fontSize: "0.82rem", color: "#4a5068" }}>Enter your new card details. This will be used for all future auto-refills.</p>
+                    <input type="text" placeholder="Card Number (e.g. 4111 1111 1111 1111)" className="w-full p-3 outline-none" style={{ backgroundColor: "#f3f4f8", border: "1px solid #e2e6ef", borderRadius: 8, fontSize: "0.82rem" }} />
+                    <div className="grid grid-cols-2 gap-3">
+                        <input type="text" placeholder="MM/YY" className="w-full p-3 outline-none" style={{ backgroundColor: "#f3f4f8", border: "1px solid #e2e6ef", borderRadius: 8, fontSize: "0.82rem" }} />
+                        <input type="text" placeholder="CVC" className="w-full p-3 outline-none" style={{ backgroundColor: "#f3f4f8", border: "1px solid #e2e6ef", borderRadius: 8, fontSize: "0.82rem" }} />
+                    </div>
+                    <button onClick={() => { toast.success("Card updated successfully!"); setCardOpen(false); }} className="w-full py-2.5 mt-2 rounded-xl transition-opacity hover:opacity-90" style={{ backgroundColor: "#2563eb", color: "#fff", fontSize: "0.82rem", fontWeight: 600 }}>Save Card</button>
+                </div>
+            </PatientModal>
         </div>
     );
 }
@@ -177,6 +233,8 @@ function PaymentFailedAlert() {
    ═══════════════════════════════════════════ */
 
 function PaymentMethodCard() {
+    const [isCardOpen, setCardOpen] = useState(false);
+
     return (
         <div style={cardStyle} className="p-5">
             <p style={sectionTitle}>PAYMENT METHOD</p>
@@ -199,13 +257,25 @@ function PaymentMethodCard() {
                     <p style={{ fontSize: "0.68rem", color: "#8892a8", marginTop: 1 }}>Expires 08/2027</p>
                 </div>
                 <button
-                    onClick={() => toast("Update card")}
+                    onClick={() => setCardOpen(true)}
                     className="shrink-0 px-3.5 py-2 rounded-lg hover:bg-[#f3f4f8] transition-colors"
                     style={{ border: "1px solid #e2e6ef", fontSize: "0.72rem", fontWeight: 600, color: "#1a1d2e", background: "#fff" }}
                 >
                     Update Card
                 </button>
             </div>
+
+            <PatientModal isOpen={isCardOpen} onClose={() => setCardOpen(false)} title="Update Payment Method">
+                <div className="flex flex-col gap-4">
+                    <p style={{ fontSize: "0.82rem", color: "#4a5068" }}>Enter your new card details. This will be used for all future auto-refills.</p>
+                    <input type="text" placeholder="Card Number (e.g. 4111 1111 1111 1111)" className="w-full p-3 outline-none" style={{ backgroundColor: "#f3f4f8", border: "1px solid #e2e6ef", borderRadius: 8, fontSize: "0.82rem" }} />
+                    <div className="grid grid-cols-2 gap-3">
+                        <input type="text" placeholder="MM/YY" className="w-full p-3 outline-none" style={{ backgroundColor: "#f3f4f8", border: "1px solid #e2e6ef", borderRadius: 8, fontSize: "0.82rem" }} />
+                        <input type="text" placeholder="CVC" className="w-full p-3 outline-none" style={{ backgroundColor: "#f3f4f8", border: "1px solid #e2e6ef", borderRadius: 8, fontSize: "0.82rem" }} />
+                    </div>
+                    <button onClick={() => { toast.success("Card updated successfully!"); setCardOpen(false); }} className="w-full py-2.5 mt-2 rounded-xl transition-opacity hover:opacity-90" style={{ backgroundColor: "#2563eb", color: "#fff", fontSize: "0.82rem", fontWeight: 600 }}>Save Card</button>
+                </div>
+            </PatientModal>
         </div>
     );
 }
@@ -283,6 +353,7 @@ function BillingHistoryCard() {
 
 export function PatientSettings() {
     const [activeTab, setActiveTab] = useState("Account & Billing");
+    const [isLogoutOpen, setLogoutOpen] = useState(false);
 
     return (
         <div className="p-5 md:p-8">
@@ -497,13 +568,25 @@ export function PatientSettings() {
                                     </div>
                                 </div>
                                 <button
-                                    onClick={() => toast("All other devices logged out")}
+                                    onClick={() => setLogoutOpen(true)}
                                     className="mt-4"
                                     style={{ fontSize: "0.76rem", fontWeight: 600, color: "#dc2626", background: "none", border: "none", cursor: "pointer" }}
                                 >
                                     Log out of all other devices
                                 </button>
                             </div>
+
+                            <PatientModal isOpen={isLogoutOpen} onClose={() => setLogoutOpen(false)} title="Log Out other devices?">
+                                <div className="flex flex-col gap-4">
+                                    <p style={{ fontSize: "0.82rem", color: "#4a5068", lineHeight: 1.5 }}>
+                                        You will be signed out of all devices except this one. You will need to log back in to access the Patient Panel on other browsers or phones.
+                                    </p>
+                                    <div className="flex gap-3 mt-4">
+                                        <button onClick={() => setLogoutOpen(false)} className="flex-1 py-2.5 rounded-xl hover:bg-[#f3f4f8] transition-colors" style={{ border: "1px solid #e2e6ef", fontSize: "0.82rem", fontWeight: 600, color: "#4a5068" }}>Cancel</button>
+                                        <button onClick={() => { toast("All other devices logged out"); setLogoutOpen(false); }} className="flex-1 py-2.5 rounded-xl hover:opacity-90 transition-opacity" style={{ backgroundColor: "#dc2626", color: "#fff", border: "none", fontSize: "0.82rem", fontWeight: 600 }}>Log Out Devices</button>
+                                    </div>
+                                </div>
+                            </PatientModal>
                         </>
                     )}
                     {activeTab === "Help & Support" && (
