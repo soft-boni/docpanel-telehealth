@@ -5,6 +5,7 @@ import {
     Pill,
     Package,
     MessageSquare,
+    Heart,
     Settings,
     HelpCircle,
     LogOut,
@@ -26,6 +27,7 @@ const navDefs: NavItem[] = [
     { path: "/treatment", icon: Pill, label: "My Treatment" },
     { path: "/orders", icon: Package, label: "Orders & Shipping" },
     { path: "/messages", icon: MessageSquare, label: "Messages", badge: 1 },
+    { path: "/profile", icon: Heart, label: "Health Profile" },
 ];
 
 export function PatientSidebar() {

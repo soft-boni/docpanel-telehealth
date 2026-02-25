@@ -4,6 +4,7 @@ import {
     Pill,
     Package,
     MessageSquare,
+    Heart,
 } from "lucide-react";
 import { usePatientBase } from "../PatientBaseContext";
 
@@ -20,6 +21,7 @@ const tabDefs: TabItem[] = [
     { path: "/treatment", icon: Pill, label: "Treatment" },
     { path: "/orders", icon: Package, label: "Orders" },
     { path: "/messages", icon: MessageSquare, label: "Messages", dot: true },
+    { path: "/profile", icon: Heart, label: "Profile" },
 ];
 
 export function BottomTabBar() {
