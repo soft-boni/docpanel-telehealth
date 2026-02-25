@@ -18,6 +18,38 @@ const sectionTitle: React.CSSProperties = {
     textTransform: "uppercase" as const,
 };
 
+/* ── Toggle Switch ── */
+
+function TwoFAToggle() {
+    const [on, setOn] = useState(false);
+    return (
+        <button
+            onClick={() => setOn(!on)}
+            className="shrink-0 rounded-full transition-colors"
+            style={{
+                width: 44,
+                height: 24,
+                backgroundColor: on ? "#16a34a" : "#e2e6ef",
+                padding: 2,
+                border: "none",
+                cursor: "pointer",
+                position: "relative",
+            }}
+        >
+            <div
+                className="rounded-full transition-all"
+                style={{
+                    width: 20,
+                    height: 20,
+                    backgroundColor: "#fff",
+                    boxShadow: "0 1px 3px rgba(0,0,0,0.15)",
+                    transform: on ? "translateX(20px)" : "translateX(0)",
+                }}
+            />
+        </button>
+    );
+}
+
 /* ═══════════════════════════════════════════
    SETTINGS TABS
    ═══════════════════════════════════════════ */
@@ -300,20 +332,179 @@ export function PatientSettings() {
                         </>
                     )}
                     {activeTab === "Personal Info" && (
-                        <div style={cardStyle} className="p-5">
-                            <p style={sectionTitle}>PERSONAL INFORMATION</p>
-                            <p className="mt-3" style={{ fontSize: "0.82rem", color: "#8892a8" }}>
-                                Personal info editing will be available here.
-                            </p>
-                        </div>
+                        <>
+                            {/* Basic Information */}
+                            <div style={cardStyle} className="p-5">
+                                <p style={sectionTitle}>BASIC INFORMATION</p>
+                                <div className="grid grid-cols-2 gap-4 mt-4">
+                                    {[
+                                        { label: "First Name", value: "Omar", disabled: false },
+                                        { label: "Last Name", value: "Al-Rashid", disabled: false },
+                                        { label: "Email Address", value: "omar.r@email.com", disabled: false },
+                                        { label: "Phone Number", value: "+966 50 123 4567", disabled: false },
+                                        { label: "Date of Birth", value: "15/01/1990", disabled: true },
+                                        { label: "Gender", value: "Male", disabled: true },
+                                    ].map((field) => (
+                                        <div key={field.label}>
+                                            <label style={{ fontSize: "0.68rem", fontWeight: 600, color: "#8892a8", textTransform: "uppercase", letterSpacing: "0.04em" }}>
+                                                {field.label}
+                                            </label>
+                                            <input
+                                                type="text"
+                                                defaultValue={field.value}
+                                                disabled={field.disabled}
+                                                className="w-full mt-1 outline-none"
+                                                style={{
+                                                    backgroundColor: field.disabled ? "#f3f4f8" : "#fff",
+                                                    border: "1px solid #e2e6ef",
+                                                    borderRadius: 8,
+                                                    padding: "8px 12px",
+                                                    fontSize: "0.82rem",
+                                                    color: field.disabled ? "#8892a8" : "#1a1d2e",
+                                                    cursor: field.disabled ? "not-allowed" : "text",
+                                                }}
+                                            />
+                                        </div>
+                                    ))}
+                                </div>
+                                <p className="mt-3" style={{ fontSize: "0.68rem", color: "#8892a8", fontStyle: "italic" }}>
+                                    To change date of birth or gender, please contact support as this affects your medical profile.
+                                </p>
+                            </div>
+
+                            {/* Delivery Address */}
+                            <div style={cardStyle} className="p-5">
+                                <p style={sectionTitle}>DEFAULT DELIVERY ADDRESS</p>
+                                <div className="flex flex-col gap-4 mt-4">
+                                    <div>
+                                        <label style={{ fontSize: "0.68rem", fontWeight: 600, color: "#8892a8", textTransform: "uppercase", letterSpacing: "0.04em" }}>
+                                            Street Address
+                                        </label>
+                                        <input
+                                            type="text"
+                                            defaultValue="King Fahd Road, Block 4"
+                                            className="w-full mt-1 outline-none"
+                                            style={{ backgroundColor: "#fff", border: "1px solid #e2e6ef", borderRadius: 8, padding: "8px 12px", fontSize: "0.82rem", color: "#1a1d2e" }}
+                                        />
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label style={{ fontSize: "0.68rem", fontWeight: 600, color: "#8892a8", textTransform: "uppercase", letterSpacing: "0.04em" }}>
+                                                City
+                                            </label>
+                                            <input
+                                                type="text"
+                                                defaultValue="Riyadh"
+                                                className="w-full mt-1 outline-none"
+                                                style={{ backgroundColor: "#fff", border: "1px solid #e2e6ef", borderRadius: 8, padding: "8px 12px", fontSize: "0.82rem", color: "#1a1d2e" }}
+                                            />
+                                        </div>
+                                        <div>
+                                            <label style={{ fontSize: "0.68rem", fontWeight: 600, color: "#8892a8", textTransform: "uppercase", letterSpacing: "0.04em" }}>
+                                                Postal Code
+                                            </label>
+                                            <input
+                                                type="text"
+                                                defaultValue="12214"
+                                                className="w-full mt-1 outline-none"
+                                                style={{ backgroundColor: "#fff", border: "1px solid #e2e6ef", borderRadius: 8, padding: "8px 12px", fontSize: "0.82rem", color: "#1a1d2e" }}
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Save Button */}
+                            <div className="flex justify-end">
+                                <button
+                                    onClick={() => toast.success("Changes saved!")}
+                                    className="px-6 py-2.5 rounded-lg hover:opacity-90 transition-opacity"
+                                    style={{ backgroundColor: "#16a34a", color: "#fff", fontSize: "0.82rem", fontWeight: 600, border: "none" }}
+                                >
+                                    Save Changes
+                                </button>
+                            </div>
+                        </>
                     )}
                     {activeTab === "Security" && (
-                        <div style={cardStyle} className="p-5">
-                            <p style={sectionTitle}>SECURITY SETTINGS</p>
-                            <p className="mt-3" style={{ fontSize: "0.82rem", color: "#8892a8" }}>
-                                Password and security settings will be available here.
-                            </p>
-                        </div>
+                        <>
+                            {/* Change Password */}
+                            <div style={cardStyle} className="p-5">
+                                <p style={sectionTitle}>CHANGE PASSWORD</p>
+                                <div className="flex flex-col gap-3 mt-4">
+                                    {["Current Password", "New Password", "Confirm New Password"].map((label) => (
+                                        <div key={label}>
+                                            <label style={{ fontSize: "0.68rem", fontWeight: 600, color: "#8892a8", textTransform: "uppercase", letterSpacing: "0.04em" }}>
+                                                {label}
+                                            </label>
+                                            <input
+                                                type="password"
+                                                placeholder={"Enter " + label.toLowerCase()}
+                                                className="w-full mt-1 outline-none"
+                                                style={{
+                                                    backgroundColor: "#fff",
+                                                    border: "1px solid #e2e6ef",
+                                                    borderRadius: 8,
+                                                    padding: "8px 12px",
+                                                    fontSize: "0.82rem",
+                                                    color: "#1a1d2e",
+                                                }}
+                                            />
+                                        </div>
+                                    ))}
+                                </div>
+                                <div className="mt-4">
+                                    <button
+                                        onClick={() => toast.success("Password updated!")}
+                                        className="px-5 py-2.5 rounded-lg hover:opacity-90 transition-opacity"
+                                        style={{ backgroundColor: "#1a1d2e", color: "#fff", fontSize: "0.82rem", fontWeight: 600, border: "none" }}
+                                    >
+                                        Update Password
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* 2FA */}
+                            <div style={cardStyle} className="p-5">
+                                <p style={sectionTitle}>TWO-FACTOR AUTHENTICATION</p>
+                                <div className="flex items-center justify-between mt-4 gap-4">
+                                    <div>
+                                        <p style={{ fontSize: "0.84rem", fontWeight: 700, color: "#1a1d2e" }}>Secure your account</p>
+                                        <p style={{ fontSize: "0.72rem", color: "#8892a8", marginTop: 2, lineHeight: 1.5 }}>
+                                            Require a verification code sent to your phone when logging in.
+                                        </p>
+                                    </div>
+                                    <TwoFAToggle />
+                                </div>
+                            </div>
+
+                            {/* Active Sessions */}
+                            <div style={cardStyle} className="p-5">
+                                <p style={sectionTitle}>ACTIVE SESSIONS</p>
+                                <div className="flex flex-col gap-3 mt-4">
+                                    <div className="flex items-center justify-between">
+                                        <div>
+                                            <p style={{ fontSize: "0.82rem", fontWeight: 700, color: "#1a1d2e" }}>Mac OS · Safari</p>
+                                            <p style={{ fontSize: "0.68rem", color: "#16a34a", marginTop: 1 }}>Riyadh, SA · Current session</p>
+                                        </div>
+                                    </div>
+                                    <div style={{ borderTop: "1px solid #e2e6ef" }} />
+                                    <div className="flex items-center justify-between">
+                                        <div>
+                                            <p style={{ fontSize: "0.82rem", fontWeight: 700, color: "#1a1d2e" }}>iPhone 14 · App</p>
+                                            <p style={{ fontSize: "0.68rem", color: "#8892a8", marginTop: 1 }}>Jeddah, SA · Last active 2 hours ago</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <button
+                                    onClick={() => toast("All other devices logged out")}
+                                    className="mt-4"
+                                    style={{ fontSize: "0.76rem", fontWeight: 600, color: "#dc2626", background: "none", border: "none", cursor: "pointer" }}
+                                >
+                                    Log out of all other devices
+                                </button>
+                            </div>
+                        </>
                     )}
                     {activeTab === "Help & Support" && (
                         <div style={cardStyle} className="p-5">
