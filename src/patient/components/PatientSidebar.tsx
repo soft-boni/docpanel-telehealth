@@ -19,13 +19,13 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
-    { to: "/patient", icon: Home, label: "Home", end: true },
-    { to: "/patient/treatment", icon: Pill, label: "My Treatment" },
-    { to: "/patient/orders", icon: Package, label: "Orders & Shipping" },
-    { to: "/patient/messages", icon: MessageSquare, label: "Messages", badge: 1 },
-    { to: "/patient/profile", icon: Heart, label: "Health Profile" },
-    { to: "/patient/account", icon: CreditCard, label: "Account & Billing" },
-    { to: "/patient/help", icon: HelpCircle, label: "Help" },
+    { to: "/", icon: Home, label: "Home", end: true },
+    { to: "/treatment", icon: Pill, label: "My Treatment" },
+    { to: "/orders", icon: Package, label: "Orders & Shipping" },
+    { to: "/messages", icon: MessageSquare, label: "Messages", badge: 1 },
+    { to: "/profile", icon: Heart, label: "Health Profile" },
+    { to: "/account", icon: CreditCard, label: "Account & Billing" },
+    { to: "/help", icon: HelpCircle, label: "Help" },
 ];
 
 export function PatientSidebar() {

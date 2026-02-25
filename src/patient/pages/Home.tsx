@@ -191,10 +191,10 @@ function QuickActions() {
     const navigate = useNavigate();
 
     const actions = [
-        { icon: MessageSquare, label: "Message Doctor", color: "#2563eb", path: "/patient/messages" },
-        { icon: Package, label: "Track Order", color: "#ea580c", path: "/patient/orders" },
-        { icon: Scale, label: "Log Weight", color: "#7c3aed", path: "/patient/profile" },
-        { icon: RefreshCw, label: "Refill Early", color: "#16a34a", path: "/patient/orders" },
+        { icon: MessageSquare, label: "Message Doctor", color: "#2563eb", path: "/messages" },
+        { icon: Package, label: "Track Order", color: "#ea580c", path: "/orders" },
+        { icon: Scale, label: "Log Weight", color: "#7c3aed", path: "/profile" },
+        { icon: RefreshCw, label: "Refill Early", color: "#16a34a", path: "/orders" },
     ];
 
     return (

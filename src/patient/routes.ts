@@ -10,7 +10,7 @@ import type { RouteObject } from "react-router";
 
 export const patientRoutes: RouteObject[] = [
     {
-        path: "/patient",
+        path: "/",
         Component: PatientLayout,
         children: [
             { index: true, Component: Home },

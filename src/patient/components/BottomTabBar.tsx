@@ -16,11 +16,11 @@ interface TabItem {
 }
 
 const tabItems: TabItem[] = [
-    { to: "/patient", icon: Home, label: "Home", end: true },
-    { to: "/patient/treatment", icon: Pill, label: "Treatment" },
-    { to: "/patient/orders", icon: Package, label: "Orders" },
-    { to: "/patient/messages", icon: MessageSquare, label: "Messages", dot: true },
-    { to: "/patient/account", icon: User, label: "Account" },
+    { to: "/", icon: Home, label: "Home", end: true },
+    { to: "/treatment", icon: Pill, label: "Treatment" },
+    { to: "/orders", icon: Package, label: "Orders" },
+    { to: "/messages", icon: MessageSquare, label: "Messages", dot: true },
+    { to: "/account", icon: User, label: "Account" },
 ];
 
 export function BottomTabBar() {

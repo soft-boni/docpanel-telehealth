@@ -12,8 +12,14 @@ import { ProviderSettings } from "./app/pages/ProviderSettings";
 import { NotFound } from "./app/pages/NotFound";
 import { patientRoutes } from "./patient/routes";
 
-export const router = createBrowserRouter([
-    // Doctor Panel
+/**
+ * Hostname-based routing:
+ * - If the hostname contains "patient", mount the Patient Panel at /
+ * - Otherwise, mount the Doctor Panel at /
+ */
+const isPatientHost = window.location.hostname.includes("patient");
+
+const doctorRoutes = [
     {
         path: "/",
         Component: Layout,
@@ -30,6 +36,8 @@ export const router = createBrowserRouter([
             { path: "*", Component: NotFound },
         ],
     },
-    // Patient Panel
-    ...patientRoutes,
-]);
+];
+
+export const router = createBrowserRouter(
+    isPatientHost ? patientRoutes : doctorRoutes
+);
