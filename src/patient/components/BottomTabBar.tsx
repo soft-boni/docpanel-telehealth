@@ -4,7 +4,6 @@ import {
     Pill,
     Package,
     MessageSquare,
-    User,
 } from "lucide-react";
 
 interface TabItem {
@@ -20,7 +19,6 @@ const tabItems: TabItem[] = [
     { to: "/treatment", icon: Pill, label: "Treatment" },
     { to: "/orders", icon: Package, label: "Orders" },
     { to: "/messages", icon: MessageSquare, label: "Messages", dot: true },
-    { to: "/account", icon: User, label: "Account" },
 ];
 
 export function BottomTabBar() {
@@ -43,12 +41,10 @@ export function BottomTabBar() {
                         }`
                     }
                 >
-                    {({ isActive }) => (
+                    {() => (
                         <>
                             <div className="relative">
-                                <item.icon
-                                    className="w-5 h-5"
-                                />
+                                <item.icon className="w-5 h-5" />
                                 {item.dot && (
                                     <span className="absolute -top-0.5 -right-1 w-2 h-2 bg-[#16a34a] rounded-full" />
                                 )}
@@ -56,7 +52,7 @@ export function BottomTabBar() {
                             <span
                                 style={{
                                     fontSize: "0.62rem",
-                                    fontWeight: isActive ? 600 : 500,
+                                    fontWeight: 500,
                                 }}
                             >
                                 {item.label}

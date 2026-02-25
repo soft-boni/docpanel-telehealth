@@ -6,6 +6,7 @@ import { PatientMessages } from "./pages/PatientMessages";
 import { HealthProfile } from "./pages/HealthProfile";
 import { Account } from "./pages/Account";
 import { Help } from "./pages/Help";
+import { PatientSettings } from "./pages/PatientSettings";
 import type { RouteObject } from "react-router";
 
 export const patientRoutes: RouteObject[] = [
@@ -20,6 +21,7 @@ export const patientRoutes: RouteObject[] = [
             { path: "profile", Component: HealthProfile },
             { path: "account", Component: Account },
             { path: "help", Component: Help },
+            { path: "settings", Component: PatientSettings },
         ],
     },
 ];

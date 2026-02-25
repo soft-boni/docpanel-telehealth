@@ -1,12 +1,14 @@
-import { NavLink } from "react-router";
+import { useState, useRef, useEffect } from "react";
+import { NavLink, useNavigate } from "react-router";
 import {
     Home,
     Pill,
     Package,
     MessageSquare,
-    Heart,
-    CreditCard,
+    Settings,
     HelpCircle,
+    LogOut,
+    ChevronUp,
 } from "lucide-react";
 import { EviraLogo } from "../../app/components/EviraLogo";
 
@@ -23,12 +25,23 @@ const navItems: NavItem[] = [
     { to: "/treatment", icon: Pill, label: "My Treatment" },
     { to: "/orders", icon: Package, label: "Orders & Shipping" },
     { to: "/messages", icon: MessageSquare, label: "Messages", badge: 1 },
-    { to: "/profile", icon: Heart, label: "Health Profile" },
-    { to: "/account", icon: CreditCard, label: "Account & Billing" },
-    { to: "/help", icon: HelpCircle, label: "Help" },
 ];
 
 export function PatientSidebar() {
+    const [menuOpen, setMenuOpen] = useState(false);
+    const menuRef = useRef<HTMLDivElement>(null);
+    const navigate = useNavigate();
+
+    useEffect(() => {
+        function handleClick(e: MouseEvent) {
+            if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+                setMenuOpen(false);
+            }
+        }
+        document.addEventListener("mousedown", handleClick);
+        return () => document.removeEventListener("mousedown", handleClick);
+    }, []);
+
     return (
         <aside
             className="hidden md:flex flex-col h-screen w-[230px] border-r border-[#e2e6ef] bg-white shrink-0 fixed left-0 top-0 z-40"
@@ -90,9 +103,12 @@ export function PatientSidebar() {
                 ))}
             </nav>
 
-            {/* Patient Info Badge */}
-            <div className="px-4 py-4 border-t border-[#e2e6ef]">
-                <div className="flex items-center gap-2.5 px-1">
+            {/* Patient Info + Dropdown */}
+            <div className="relative px-4 py-4 border-t border-[#e2e6ef]" ref={menuRef}>
+                <button
+                    onClick={() => setMenuOpen(!menuOpen)}
+                    className="flex items-center gap-2.5 px-1 w-full text-left hover:bg-[#f3f4f8] rounded-lg py-1.5 transition-colors"
+                >
                     <div
                         className="w-8 h-8 rounded-full flex items-center justify-center text-white shrink-0"
                         style={{
@@ -103,7 +119,7 @@ export function PatientSidebar() {
                     >
                         OR
                     </div>
-                    <div className="flex flex-col min-w-0 flex-1 text-left">
+                    <div className="flex flex-col min-w-0 flex-1">
                         <span
                             className="text-[#1a1d2e] truncate"
                             style={{ fontSize: "0.8rem", fontWeight: 500 }}
@@ -117,7 +133,42 @@ export function PatientSidebar() {
                             Patient
                         </span>
                     </div>
-                </div>
+                    <ChevronUp
+                        className="w-4 h-4 text-[#8892a8] shrink-0 transition-transform"
+                        style={{ transform: menuOpen ? "rotate(0deg)" : "rotate(180deg)" }}
+                    />
+                </button>
+
+                {/* Dropdown */}
+                {menuOpen && (
+                    <div
+                        className="absolute bottom-full left-3 right-3 mb-2 bg-white rounded-xl border border-[#e2e6ef] shadow-lg overflow-hidden"
+                        style={{ boxShadow: "0 -4px 20px rgba(0,0,0,0.08)" }}
+                    >
+                        {[
+                            { icon: Settings, label: "Settings", action: () => { navigate("/settings"); setMenuOpen(false); } },
+                            { icon: HelpCircle, label: "Help", action: () => { navigate("/help"); setMenuOpen(false); } },
+                            { icon: LogOut, label: "Logout", action: () => { navigate("/"); setMenuOpen(false); } },
+                        ].map((item) => (
+                            <button
+                                key={item.label}
+                                onClick={item.action}
+                                className="flex items-center gap-2.5 px-4 py-2.5 w-full text-left hover:bg-[#f3f4f8] transition-colors"
+                            >
+                                <item.icon className="w-4 h-4 text-[#8892a8]" />
+                                <span
+                                    style={{
+                                        fontSize: "0.8rem",
+                                        fontWeight: 500,
+                                        color: item.label === "Logout" ? "#dc2626" : "#1a1d2e",
+                                    }}
+                                >
+                                    {item.label}
+                                </span>
+                            </button>
+                        ))}
+                    </div>
+                )}
             </div>
         </aside>
     );
