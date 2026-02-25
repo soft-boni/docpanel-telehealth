@@ -5,23 +5,27 @@ import {
     Package,
     MessageSquare,
 } from "lucide-react";
+import { usePatientBase } from "../PatientBaseContext";
 
 interface TabItem {
-    to: string;
+    path: string;
     icon: React.ComponentType<{ className?: string }>;
     label: string;
     end?: boolean;
     dot?: boolean;
 }
 
-const tabItems: TabItem[] = [
-    { to: "/", icon: Home, label: "Home", end: true },
-    { to: "/treatment", icon: Pill, label: "Treatment" },
-    { to: "/orders", icon: Package, label: "Orders" },
-    { to: "/messages", icon: MessageSquare, label: "Messages", dot: true },
+const tabDefs: TabItem[] = [
+    { path: "/", icon: Home, label: "Home", end: true },
+    { path: "/treatment", icon: Pill, label: "Treatment" },
+    { path: "/orders", icon: Package, label: "Orders" },
+    { path: "/messages", icon: MessageSquare, label: "Messages", dot: true },
 ];
 
 export function BottomTabBar() {
+    const base = usePatientBase();
+    const p = (path: string) => (path === "/" ? base || "/" : `${base}${path}`);
+
     return (
         <nav
             className="md:hidden fixed bottom-0 left-0 right-0 z-50 flex items-center justify-around bg-white border-t border-[#e2e6ef]"
@@ -31,10 +35,10 @@ export function BottomTabBar() {
                 fontFamily: "var(--font-sans)",
             }}
         >
-            {tabItems.map((item) => (
+            {tabDefs.map((item) => (
                 <NavLink
-                    key={item.to}
-                    to={item.to}
+                    key={item.path}
+                    to={p(item.path)}
                     end={item.end}
                     className={({ isActive }) =>
                         `flex flex-col items-center justify-center gap-0.5 py-1 px-3 transition-colors ${isActive ? "text-[#16a34a]" : "text-[#8892a8]"
@@ -49,12 +53,7 @@ export function BottomTabBar() {
                                     <span className="absolute -top-0.5 -right-1 w-2 h-2 bg-[#16a34a] rounded-full" />
                                 )}
                             </div>
-                            <span
-                                style={{
-                                    fontSize: "0.62rem",
-                                    fontWeight: 500,
-                                }}
-                            >
+                            <span style={{ fontSize: "0.62rem", fontWeight: 500 }}>
                                 {item.label}
                             </span>
                         </>

@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router";
+import { usePatientPath } from "../PatientBaseContext";
 import { toast } from "sonner";
 
 /* ─── Shared ─── */
@@ -284,11 +285,12 @@ function WeightProgress() {
 
 function ActionButtons() {
     const navigate = useNavigate();
+    const p = usePatientPath();
 
     return (
         <div className="grid grid-cols-3 gap-2">
             <button
-                onClick={() => navigate("/messages")}
+                onClick={() => navigate(p("/messages"))}
                 className="py-3 rounded-xl hover:bg-[#f3f4f8] transition-colors"
                 style={{
                     border: "1px solid #e2e6ef",

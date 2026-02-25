@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
+import { usePatientPath } from "../PatientBaseContext";
 import {
     MessageSquare,
     Package,
@@ -126,6 +127,7 @@ function GreetingHeader() {
 
 function PaymentBanner() {
     const navigate = useNavigate();
+    const p = usePatientPath();
     return (
         <div
             className="flex items-center justify-between gap-4 px-5 py-3 rounded-xl flex-wrap"
@@ -135,7 +137,7 @@ function PaymentBanner() {
                 ⚠️ Your payment didn't go through. Update your card to continue treatment without interruption.
             </p>
             <button
-                onClick={() => navigate("/settings")}
+                onClick={() => navigate(p("/settings"))}
                 className="shrink-0 px-4 py-2 rounded-lg hover:opacity-90 transition-opacity"
                 style={{ backgroundColor: "#dc2626", color: "#fff", fontSize: "0.76rem", fontWeight: 600, border: "none" }}
             >
@@ -311,6 +313,7 @@ function StatusCard({ status }: { status: PatientStatus }) {
 
 function QuickActions() {
     const navigate = useNavigate();
+    const p = usePatientPath();
     const actions = [
         { icon: MessageSquare, label: "Message Doctor", color: "#2563eb", path: "/messages" },
         { icon: Package, label: "Track Order", color: "#ea580c", path: "/orders" },
@@ -320,7 +323,7 @@ function QuickActions() {
     return (
         <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 8 }}>
             {actions.map((a) => (
-                <button key={a.label} onClick={() => navigate(a.path)} style={cardStyle}
+                <button key={a.label} onClick={() => navigate(p(a.path))} style={cardStyle}
                     className="flex flex-col items-center justify-center gap-2 py-4 px-2 hover:bg-[#f8f9fb] transition-colors cursor-pointer"
                 >
                     <a.icon className="w-5 h-5" style={{ color: a.color }} />
@@ -418,6 +421,7 @@ function ToDoCard({ status }: { status: PatientStatus }) {
 
 function DeclinedExtras() {
     const navigate = useNavigate();
+    const p = usePatientPath();
     return (
         <div style={cardStyle} className="p-5">
             <p style={{ fontSize: "0.68rem", fontWeight: 700, letterSpacing: "0.06em", color: "#8892a8", textTransform: "uppercase" }}>DOCTOR'S MESSAGE</p>
@@ -426,7 +430,7 @@ function DeclinedExtras() {
             </p>
             <p className="mt-2" style={{ fontSize: "0.72rem", color: "#8892a8" }}>— Dr. Alharbi</p>
             <button
-                onClick={() => navigate("/")}
+                onClick={() => navigate(p("/"))}
                 className="mt-4 w-full py-3 rounded-xl hover:opacity-90 transition-opacity"
                 style={{ backgroundColor: "#2563eb", color: "#fff", fontSize: "0.84rem", fontWeight: 700, border: "none" }}
             >

@@ -10,14 +10,18 @@ import { Subscriptions } from "./app/pages/Subscriptions";
 import { Analytics } from "./app/pages/Analytics";
 import { ProviderSettings } from "./app/pages/ProviderSettings";
 import { NotFound } from "./app/pages/NotFound";
-import { patientRoutes } from "./patient/routes";
+import { patientRoutes, buildPatientRoutes } from "./patient/routes";
 
 /**
  * Hostname-based routing:
- * - If the hostname contains "patient", mount the Patient Panel at /
- * - Otherwise, mount the Doctor Panel at /
+ * - Production "patient-telehealth.vercel.app" → Patient Panel at /
+ * - Production "telehealth-doctor-panel.vercel.app" → Doctor Panel at /
+ * - Localhost → Both: Doctor at /, Patient at /patient
  */
 const isPatientHost = window.location.hostname.includes("patient");
+const isLocalhost =
+    window.location.hostname === "localhost" ||
+    window.location.hostname === "127.0.0.1";
 
 const doctorRoutes = [
     {
@@ -38,6 +42,19 @@ const doctorRoutes = [
     },
 ];
 
-export const router = createBrowserRouter(
-    isPatientHost ? patientRoutes : doctorRoutes
-);
+function buildRoutes() {
+    if (isPatientHost) {
+        // Production patient domain → patient routes only, at "/"
+        return patientRoutes;
+    }
+
+    if (isLocalhost) {
+        // Localhost → both panels: doctor at "/", patient at "/patient"
+        return [...doctorRoutes, ...buildPatientRoutes("/patient")];
+    }
+
+    // Production doctor domain → doctor routes only
+    return doctorRoutes;
+}
+
+export const router = createBrowserRouter(buildRoutes());

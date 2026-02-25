@@ -11,26 +11,31 @@ import {
     ChevronUp,
 } from "lucide-react";
 import { EviraLogo } from "../../app/components/EviraLogo";
+import { usePatientBase } from "../PatientBaseContext";
 
 interface NavItem {
-    to: string;
+    path: string;
     icon: React.ComponentType<{ className?: string }>;
     label: string;
     end?: boolean;
     badge?: number;
 }
 
-const navItems: NavItem[] = [
-    { to: "/", icon: Home, label: "Home", end: true },
-    { to: "/treatment", icon: Pill, label: "My Treatment" },
-    { to: "/orders", icon: Package, label: "Orders & Shipping" },
-    { to: "/messages", icon: MessageSquare, label: "Messages", badge: 1 },
+const navDefs: NavItem[] = [
+    { path: "/", icon: Home, label: "Home", end: true },
+    { path: "/treatment", icon: Pill, label: "My Treatment" },
+    { path: "/orders", icon: Package, label: "Orders & Shipping" },
+    { path: "/messages", icon: MessageSquare, label: "Messages", badge: 1 },
 ];
 
 export function PatientSidebar() {
     const [menuOpen, setMenuOpen] = useState(false);
     const menuRef = useRef<HTMLDivElement>(null);
     const navigate = useNavigate();
+    const base = usePatientBase();
+
+    // Prefix helper
+    const p = (path: string) => (path === "/" ? base || "/" : `${base}${path}`);
 
     useEffect(() => {
         function handleClick(e: MouseEvent) {
@@ -54,10 +59,10 @@ export function PatientSidebar() {
 
             {/* Navigation */}
             <nav className="flex-1 flex flex-col gap-0.5 px-3 py-2 overflow-y-auto">
-                {navItems.map((item) => (
+                {navDefs.map((item) => (
                     <NavLink
-                        key={item.to}
-                        to={item.to}
+                        key={item.path}
+                        to={p(item.path)}
                         end={item.end}
                         className={({ isActive }) =>
                             `relative flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all ${isActive
@@ -75,24 +80,13 @@ export function PatientSidebar() {
                                     />
                                 )}
                                 <item.icon className="w-[18px] h-[18px] shrink-0" />
-                                <span
-                                    className="flex-1"
-                                    style={{
-                                        fontSize: "0.85rem",
-                                        fontWeight: isActive ? 600 : 500,
-                                    }}
-                                >
+                                <span className="flex-1" style={{ fontSize: "0.85rem", fontWeight: isActive ? 600 : 500 }}>
                                     {item.label}
                                 </span>
                                 {item.badge && (
                                     <span
                                         className="flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full text-white"
-                                        style={{
-                                            backgroundColor: "#16a34a",
-                                            fontSize: "0.65rem",
-                                            fontWeight: 600,
-                                            fontFamily: "var(--font-mono)",
-                                        }}
+                                        style={{ backgroundColor: "#16a34a", fontSize: "0.65rem", fontWeight: 600, fontFamily: "var(--font-mono)" }}
                                     >
                                         {item.badge}
                                     </span>
@@ -111,27 +105,13 @@ export function PatientSidebar() {
                 >
                     <div
                         className="w-8 h-8 rounded-full flex items-center justify-center text-white shrink-0"
-                        style={{
-                            background: "linear-gradient(135deg, #16a34a, #15803d)",
-                            fontSize: "0.7rem",
-                            fontWeight: 600,
-                        }}
+                        style={{ background: "linear-gradient(135deg, #16a34a, #15803d)", fontSize: "0.7rem", fontWeight: 600 }}
                     >
                         OR
                     </div>
                     <div className="flex flex-col min-w-0 flex-1">
-                        <span
-                            className="text-[#1a1d2e] truncate"
-                            style={{ fontSize: "0.8rem", fontWeight: 500 }}
-                        >
-                            Omar Al-Rashid
-                        </span>
-                        <span
-                            className="text-[#8892a8] truncate"
-                            style={{ fontSize: "0.68rem" }}
-                        >
-                            Patient
-                        </span>
+                        <span className="text-[#1a1d2e] truncate" style={{ fontSize: "0.8rem", fontWeight: 500 }}>Omar Al-Rashid</span>
+                        <span className="text-[#8892a8] truncate" style={{ fontSize: "0.68rem" }}>Patient</span>
                     </div>
                     <ChevronUp
                         className="w-4 h-4 text-[#8892a8] shrink-0 transition-transform"
@@ -139,15 +119,14 @@ export function PatientSidebar() {
                     />
                 </button>
 
-                {/* Dropdown */}
                 {menuOpen && (
                     <div
                         className="absolute bottom-full left-3 right-3 mb-2 bg-white rounded-xl border border-[#e2e6ef] shadow-lg overflow-hidden"
                         style={{ boxShadow: "0 -4px 20px rgba(0,0,0,0.08)" }}
                     >
                         {[
-                            { icon: Settings, label: "Settings", action: () => { navigate("/settings"); setMenuOpen(false); } },
-                            { icon: HelpCircle, label: "Help", action: () => { navigate("/help"); setMenuOpen(false); } },
+                            { icon: Settings, label: "Settings", action: () => { navigate(p("/settings")); setMenuOpen(false); } },
+                            { icon: HelpCircle, label: "Help", action: () => { navigate(p("/help")); setMenuOpen(false); } },
                             { icon: LogOut, label: "Logout", action: () => { navigate("/"); setMenuOpen(false); } },
                         ].map((item) => (
                             <button
@@ -156,13 +135,7 @@ export function PatientSidebar() {
                                 className="flex items-center gap-2.5 px-4 py-2.5 w-full text-left hover:bg-[#f3f4f8] transition-colors"
                             >
                                 <item.icon className="w-4 h-4 text-[#8892a8]" />
-                                <span
-                                    style={{
-                                        fontSize: "0.8rem",
-                                        fontWeight: 500,
-                                        color: item.label === "Logout" ? "#dc2626" : "#1a1d2e",
-                                    }}
-                                >
+                                <span style={{ fontSize: "0.8rem", fontWeight: 500, color: item.label === "Logout" ? "#dc2626" : "#1a1d2e" }}>
                                     {item.label}
                                 </span>
                             </button>
