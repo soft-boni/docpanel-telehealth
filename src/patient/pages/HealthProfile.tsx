@@ -1,6 +1,7 @@
 import { toast } from "sonner";
 import { useState } from "react";
 import { PatientModal } from "../components/PatientModal";
+import { usePrototype } from "../PrototypeContext";
 
 /* ─── Shared ─── */
 
@@ -40,17 +41,25 @@ const divider: React.CSSProperties = {
    ═══════════════════════════════════════════ */
 
 function PersonalVitals() {
+    const { gender, data } = usePrototype();
+
+    // Auto-calculate BMI for weight loss, else hide or show placeholder
+    const isWeightLoss = data.key.includes("Weight") || data.key === "Lose Weight";
+    const weight = data.progress.currentValue; // This assumes for weight loss progress = weight.
+    const height = gender === "Male" ? 178 : 165;
+    const bmi = isWeightLoss ? (weight / Math.pow(height / 100, 2)).toFixed(1) : "N/A";
+
     const personal = [
-        { label: "Name", value: "Omar Al-Rashid" },
+        { label: "Name", value: gender === "Male" ? "Omar Al-Rashid" : "Sara Al-Otaibi" },
         { label: "Date of Birth", value: "Jan 15, 1990" },
         { label: "Age", value: "36" },
-        { label: "Gender", value: "Male" },
+        { label: "Gender", value: gender },
     ];
 
     const vitals = [
-        { label: "Height", value: "178 cm" },
-        { label: "Current Weight", value: "94.8 kg" },
-        { label: "BMI", value: "29.9 — Auto-calculated" },
+        { label: "Height", value: `${height} cm` },
+        { label: isWeightLoss ? "Current Weight" : "Weight", value: isWeightLoss ? `${weight} kg` : "76 kg" },
+        { label: "BMI", value: isWeightLoss ? `${bmi} — Auto-calculated` : "N/A" },
     ];
 
     return (
@@ -85,6 +94,7 @@ function PersonalVitals() {
    ═══════════════════════════════════════════ */
 
 function MedicalHistory() {
+    const { data } = usePrototype();
     const [isConditionsOpen, setConditionsOpen] = useState(false);
     const [isMedsOpen, setMedsOpen] = useState(false);
     const [isAllergiesOpen, setAllergiesOpen] = useState(false);
@@ -111,7 +121,7 @@ function MedicalHistory() {
                     <button style={editBtn} onClick={() => setMedsOpen(true)}>Edit</button>
                 </div>
                 <ul className="mt-1.5 flex flex-col gap-1">
-                    {["Generic Semaglutide 0.5mg", "Metformin 500mg", "Vitamin B12"].map((m) => (
+                    {data.medications.map((m) => (
                         <li key={m} style={{ fontSize: "0.78rem", color: "#1a1d2e" }}>• {m}</li>
                     ))}
                 </ul>
@@ -163,7 +173,7 @@ function MedicalHistory() {
                     <textarea
                         className="w-full p-3 outline-none"
                         style={{ backgroundColor: "#f3f4f8", border: "1px solid #e2e6ef", borderRadius: 8, fontSize: "0.82rem", minHeight: 100 }}
-                        defaultValue="Generic Semaglutide 0.5mg&#10;Metformin 500mg&#10;Vitamin B12"
+                        defaultValue={data.medications.join("\n")}
                     />
                     <button onClick={() => { toast.success("Medications updated"); setMedsOpen(false); }} className="w-full py-2.5 mt-2 rounded-xl transition-opacity hover:opacity-90" style={{ backgroundColor: "#2563eb", color: "#fff", fontSize: "0.82rem", fontWeight: 600 }}>Save Changes</button>
                 </div>
@@ -191,14 +201,15 @@ function MedicalHistory() {
    ═══════════════════════════════════════════ */
 
 function CheckinsWeightLog() {
+    const { data } = usePrototype();
     const [isCheckinOpen, setCheckinOpen] = useState(false);
     const [isWeightOpen, setWeightOpen] = useState(false);
     const [weightInput, setWeightInput] = useState("");
 
-    const weightLog = [
-        { date: "Feb 20, 2026", weight: "94.8 kg" },
-        { date: "Feb 13, 2026", weight: "95.5 kg" },
-        { date: "Nov 15, 2025", weight: "103.0 kg" },
+    const progressLog = [
+        { date: "Feb 20, 2026", value: `${data.progress.currentValue} ${data.progress.unit}` },
+        { date: "Feb 13, 2026", value: `${(data.progress.currentValue * 1.05).toFixed(1)} ${data.progress.unit}` },
+        { date: "Nov 15, 2025", value: `${data.progress.startValue} ${data.progress.unit}` },
     ];
 
     return (
@@ -220,9 +231,9 @@ function CheckinsWeightLog() {
 
             <div style={{ ...divider, margin: "16px 0" }} />
 
-            {/* Weight Log Header */}
+            {/* Log Header */}
             <div className="flex items-center justify-between">
-                <p style={{ fontSize: "0.84rem", fontWeight: 700, color: "#1a1d2e" }}>Weight Log</p>
+                <p style={{ fontSize: "0.84rem", fontWeight: 700, color: "#1a1d2e" }}>Tracking Log</p>
                 <button
                     onClick={() => setWeightOpen(true)}
                     className="px-3 py-1.5 rounded-lg hover:opacity-90 transition-opacity"
@@ -234,20 +245,20 @@ function CheckinsWeightLog() {
                         fontWeight: 600,
                     }}
                 >
-                    + Log new weight
+                    + Log {data.progress.label}
                 </button>
             </div>
 
-            {/* Weight Log List */}
+            {/* Log List */}
             <div className="flex flex-col mt-3">
-                {weightLog.map((entry, i) => (
+                {progressLog.map((entry, i) => (
                     <div
                         key={entry.date}
                         className="flex items-center justify-between py-2.5 px-1"
-                        style={{ borderBottom: i < weightLog.length - 1 ? "1px solid #e2e6ef" : "none" }}
+                        style={{ borderBottom: i < progressLog.length - 1 ? "1px solid #e2e6ef" : "none" }}
                     >
                         <span style={{ fontSize: "0.78rem", color: "#8892a8" }}>{entry.date}</span>
-                        <span style={{ fontSize: "0.78rem", fontWeight: 700, color: "#1a1d2e" }}>{entry.weight}</span>
+                        <span style={{ fontSize: "0.78rem", fontWeight: 700, color: "#1a1d2e" }}>{entry.value}</span>
                     </div>
                 ))}
             </div>
@@ -255,7 +266,7 @@ function CheckinsWeightLog() {
             {/* CHECKIN MODAL */}
             <PatientModal isOpen={isCheckinOpen} onClose={() => setCheckinOpen(false)} title="Monthly Check-In">
                 <div className="flex flex-col gap-4">
-                    <p style={{ fontSize: "0.82rem", color: "#4a5068" }}>How have you been feeling on your current dose?</p>
+                    <p style={{ fontSize: "0.82rem", color: "#4a5068" }}>{data.checkinQuestion}</p>
                     <div className="flex gap-2">
                         {["Great", "Okay", "Poor"].map(opt => (
                             <button key={opt} className="flex-1 py-2 rounded-lg border border-[#e2e6ef] text-[#4a5068] text-[0.76rem] font-semibold hover:bg-[#f3f4f8] focus:bg-[#ecfdf5] focus:border-[#16a34a] focus:text-[#16a34a]">{opt}</button>
@@ -267,11 +278,11 @@ function CheckinsWeightLog() {
                 </div>
             </PatientModal>
 
-            {/* WEIGHT MODAL */}
-            <PatientModal isOpen={isWeightOpen} onClose={() => setWeightOpen(false)} title="Log Weight">
+            {/* TRACKING MODAL */}
+            <PatientModal isOpen={isWeightOpen} onClose={() => setWeightOpen(false)} title={`Log ${data.progress.label}`}>
                 <div className="flex flex-col gap-3">
-                    <input type="number" placeholder="Enter weight in kg" value={weightInput} onChange={e => setWeightInput(e.target.value)} className="w-full p-3 outline-none" style={{ backgroundColor: "#f3f4f8", border: "1px solid #e2e6ef", borderRadius: 8, fontSize: "0.88rem" }} />
-                    <button onClick={() => { if (weightInput) { toast.success(`Logged ${weightInput} kg`); setWeightOpen(false); setWeightInput(""); } }} className="w-full py-2.5 mt-2 rounded-xl transition-opacity hover:opacity-90" style={{ backgroundColor: "#16a34a", color: "#fff", fontSize: "0.82rem", fontWeight: 600 }}>Save Weight</button>
+                    <input type="number" placeholder={`Enter ${data.progress.label} in ${data.progress.unit}`} value={weightInput} onChange={e => setWeightInput(e.target.value)} className="w-full p-3 outline-none" style={{ backgroundColor: "#f3f4f8", border: "1px solid #e2e6ef", borderRadius: 8, fontSize: "0.88rem" }} />
+                    <button onClick={() => { if (weightInput) { toast.success(`Logged ${weightInput} ${data.progress.unit}`); setWeightOpen(false); setWeightInput(""); } }} className="w-full py-2.5 mt-2 rounded-xl transition-opacity hover:opacity-90" style={{ backgroundColor: "#16a34a", color: "#fff", fontSize: "0.82rem", fontWeight: 600 }}>Save Log</button>
                 </div>
             </PatientModal>
         </div>

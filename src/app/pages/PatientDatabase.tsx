@@ -119,7 +119,19 @@ export function PatientDatabase() {
             />
           </div>
 
-          <FilterButton label="Service" options={["All Services", "Weight Loss", "Hair Loss", "ED", "Skincare"]} />
+          <FilterButton label="Service" options={[
+            "All Services",
+            "Weight Loss",
+            "Hair Loss",
+            "Hair Regrowth",
+            "Testosterone",
+            "Mental Health",
+            "Sexual Health",
+            "Grow Fuller Hair",
+            "Relieve Menopause",
+            "Ease Menopause",
+            "Reduce Anxiety"
+          ]} />
           <FilterButton label="Status" options={["All Statuses", "Active", "Paused", "Cancelled"]} />
         </div>
       </div>

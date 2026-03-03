@@ -1,6 +1,6 @@
-import { useState } from "react";
 import { useNavigate } from "react-router";
 import { usePatientPath } from "../PatientBaseContext";
+import { usePrototype } from "../PrototypeContext";
 import {
     MessageSquare,
     Package,
@@ -9,30 +9,10 @@ import {
     AlertCircle,
     CheckCircle2,
     MessageCircle,
+    Activity,
+    Brain,
+    Pill,
 } from "lucide-react";
-
-/* ─── Types ─── */
-
-type PatientStatus =
-    | "waiting"
-    | "approved"
-    | "shipped"
-    | "delivered"
-    | "dose_change"
-    | "declined"
-    | "payment_failed"
-    | "paused";
-
-const statusLabels: Record<PatientStatus, string> = {
-    waiting: "1. Waiting",
-    approved: "2. Approved",
-    shipped: "3. Shipped",
-    delivered: "4. Delivered (Active)",
-    dose_change: "5. Dose Change",
-    declined: "6. Declined",
-    payment_failed: "7. Payment Failed",
-    paused: "8. Paused",
-};
 
 /* ─── Shared ─── */
 
@@ -44,67 +24,23 @@ const cardStyle: React.CSSProperties = {
 };
 
 /* ═══════════════════════════════════════════
-   STATE SWITCHER (DEV TOOL)
-   ═══════════════════════════════════════════ */
-
-function StateSwitcher({
-    value,
-    onChange,
-}: {
-    value: PatientStatus;
-    onChange: (s: PatientStatus) => void;
-}) {
-    return (
-        <div
-            className="sticky top-0 z-50 flex items-center gap-3 px-5 py-2.5"
-            style={{
-                background: "linear-gradient(90deg, #1e1b4b, #312e81)",
-                borderBottom: "2px solid #6366f1",
-            }}
-        >
-            <span style={{ fontSize: "0.76rem", fontWeight: 700, color: "#c7d2fe" }}>
-                🔧 Prototype State Switcher
-            </span>
-            <select
-                value={value}
-                onChange={(e) => onChange(e.target.value as PatientStatus)}
-                className="outline-none cursor-pointer"
-                style={{
-                    backgroundColor: "#1e1b4b",
-                    color: "#e0e7ff",
-                    border: "1px solid #6366f1",
-                    borderRadius: 8,
-                    padding: "4px 10px",
-                    fontSize: "0.74rem",
-                    fontWeight: 600,
-                }}
-            >
-                {(Object.entries(statusLabels) as [PatientStatus, string][]).map(
-                    ([key, label]) => (
-                        <option key={key} value={key}>
-                            {label}
-                        </option>
-                    )
-                )}
-            </select>
-        </div>
-    );
-}
-
-/* ═══════════════════════════════════════════
    GREETING HEADER
    ═══════════════════════════════════════════ */
 
 function GreetingHeader() {
+    const { gender, data } = usePrototype();
+    const name = gender === "Male" ? "Omar" : "Sara";
+    const initials = gender === "Male" ? "OR" : "SA";
+
     return (
         <div style={cardStyle} className="flex items-center justify-between px-5 py-4">
             <div>
                 <h2 style={{ fontSize: "1.15rem", fontWeight: 700, color: "#1a1d2e" }}>
-                    Hello, Omar{" "}
+                    Hello, {name}{" "}
                     <span role="img" aria-label="wave">👋</span>
                 </h2>
                 <p style={{ fontSize: "0.78rem", color: "#8892a8", marginTop: 2 }}>
-                    You're on Week 8 of your journey
+                    {data.greeting}
                 </p>
             </div>
             <div
@@ -115,7 +51,7 @@ function GreetingHeader() {
                     fontWeight: 700,
                 }}
             >
-                OR
+                {initials}
             </div>
         </div>
     );
@@ -194,7 +130,10 @@ function ShippingStepper({ steps }: { steps: StepData[] }) {
     );
 }
 
-function StatusCard({ status }: { status: PatientStatus }) {
+function StatusCard() {
+    const { status, data } = usePrototype();
+    const medName = data.primaryMed.name;
+
     if (status === "waiting") {
         return (
             <div className="px-5 py-5" style={{ backgroundColor: "#ea580c", borderRadius: 12, color: "#fff" }}>
@@ -211,7 +150,7 @@ function StatusCard({ status }: { status: PatientStatus }) {
             <div className="px-5 py-5" style={{ backgroundColor: "#16a34a", borderRadius: 12, color: "#fff" }}>
                 <p style={{ fontSize: "0.62rem", fontWeight: 600, letterSpacing: "0.08em", color: "rgba(255,255,255,0.5)", textTransform: "uppercase" }}>CURRENT STATUS</p>
                 <h3 className="mt-1.5" style={{ fontSize: "1.08rem", fontWeight: 700, lineHeight: 1.4 }}>
-                    ✅ Great news! Your prescription has been approved. Your order is being prepared.
+                    ✅ Great news! Your {medName} prescription has been approved. Your order is being prepared.
                 </h3>
                 <ShippingStepper steps={[
                     { label: "Prescribed", done: true, active: false },
@@ -228,7 +167,7 @@ function StatusCard({ status }: { status: PatientStatus }) {
             <div className="px-5 py-5" style={{ background: "linear-gradient(135deg, #0f172a, #164e63)", borderRadius: 12, color: "#fff" }}>
                 <p style={{ fontSize: "0.62rem", fontWeight: 600, letterSpacing: "0.08em", color: "rgba(255,255,255,0.5)", textTransform: "uppercase" }}>CURRENT STATUS</p>
                 <h3 className="mt-1.5" style={{ fontSize: "1.08rem", fontWeight: 700, lineHeight: 1.4 }}>
-                    📦 Your medication is on its way!
+                    📦 Your {medName} is on its way!
                 </h3>
                 <p className="mt-1" style={{ fontSize: "0.76rem", color: "rgba(255,255,255,0.65)" }}>
                     Tracking: SMSA-2026-48291 · Arriving tomorrow
@@ -259,10 +198,10 @@ function StatusCard({ status }: { status: PatientStatus }) {
             <div className="px-5 py-5" style={{ backgroundColor: "#7c3aed", borderRadius: 12, color: "#fff" }}>
                 <p style={{ fontSize: "0.62rem", fontWeight: 600, letterSpacing: "0.08em", color: "rgba(255,255,255,0.5)", textTransform: "uppercase" }}>CURRENT STATUS</p>
                 <h3 className="mt-1.5" style={{ fontSize: "1.08rem", fontWeight: 700, lineHeight: 1.4 }}>
-                    💜 Your dose has been increased to 0.5mg. Here's what to expect...
+                    💜 Your dose has been adjusted. Here's what to expect...
                 </h3>
                 <p className="mt-1" style={{ fontSize: "0.76rem", color: "rgba(255,255,255,0.65)" }}>
-                    Your new monthly cost is 627 SAR.
+                    Your new monthly cost is {data.monthlyTotal}.
                 </p>
             </div>
         );
@@ -308,16 +247,19 @@ function StatusCard({ status }: { status: PatientStatus }) {
 }
 
 /* ═══════════════════════════════════════════
-   QUICK ACTIONS
+   QUICK ACTIONS (dynamic icons per treatment)
    ═══════════════════════════════════════════ */
 
 function QuickActions() {
     const navigate = useNavigate();
     const p = usePatientPath();
+    const { data } = usePrototype();
+
+    const isWeight = data.progress.label.includes("Weight") || data.progress.label.includes("kg");
     const actions = [
         { icon: MessageSquare, label: "Message Doctor", color: "#2563eb", path: "/messages" },
         { icon: Package, label: "Track Order", color: "#ea580c", path: "/orders" },
-        { icon: Scale, label: "Log Weight", color: "#7c3aed", path: "/profile" },
+        { icon: isWeight ? Scale : (data.progress.direction === "up" ? Activity : Brain), label: `Log ${data.progress.label}`, color: "#7c3aed", path: "/profile" },
         { icon: RefreshCw, label: "Refill Early", color: "#16a34a", path: "/orders" },
     ];
     return (
@@ -335,11 +277,36 @@ function QuickActions() {
 }
 
 /* ═══════════════════════════════════════════
-   PROGRESS CARD (Dynamic)
+   SVG LINE CHART — comprehensive visualization
    ═══════════════════════════════════════════ */
 
-function ProgressCard({ status }: { status: PatientStatus }) {
+function ProgressChart() {
+    const { data, status } = usePrototype();
+    const { progress } = data;
     const isGreyed = status === "paused";
+
+    // Build SVG line chart from barData
+    const points = progress.barData;
+    const maxVal = Math.max(...points);
+    const minVal = Math.min(...points);
+    const range = maxVal - minVal || 1;
+
+    const w = 320;
+    const h = 120;
+    const padX = 10;
+    const padY = 10;
+    const plotW = w - padX * 2;
+    const plotH = h - padY * 2;
+
+    const coords = points.map((v, i) => ({
+        x: padX + (i / (points.length - 1)) * plotW,
+        y: padY + (1 - (v - minVal) / range) * plotH,
+    }));
+
+    const linePoints = coords.map(c => `${c.x},${c.y}`).join(" ");
+    const areaPoints = `${padX},${h - padY} ${linePoints} ${padX + plotW},${h - padY}`;
+
+    const goodColor = progress.direction === "down" ? "#16a34a" : "#2563eb";
 
     if (status === "waiting") {
         return (
@@ -354,23 +321,56 @@ function ProgressCard({ status }: { status: PatientStatus }) {
         );
     }
 
-    const bars = [
-        { height: 52, color: "#2563eb" },
-        { height: 42, color: "#2563eb" },
-        { height: 34, color: "#2563eb" },
-        { height: 26, color: "#2563eb" },
-        { height: 18, color: "#16a34a" },
-    ];
-
     return (
         <div style={{ ...cardStyle, opacity: isGreyed ? 0.45 : 1, filter: isGreyed ? "grayscale(0.6)" : "none" }} className="p-5">
-            <p style={{ fontSize: "0.68rem", fontWeight: 700, letterSpacing: "0.06em", color: "#8892a8", textTransform: "uppercase" }}>YOUR PROGRESS</p>
-            <p className="mt-3" style={{ fontSize: "1.6rem", fontWeight: 800, color: "#16a34a", lineHeight: 1 }}>-8.2 kg</p>
-            <p style={{ fontSize: "0.72rem", color: "#8892a8", marginTop: 4, lineHeight: 1.4 }}>Lost since starting · 9.1% of body weight</p>
-            <div className="flex items-end gap-2 mt-5" style={{ height: 60 }}>
-                {bars.map((bar, i) => (
-                    <div key={i} className="flex-1 rounded-t-md" style={{ height: bar.height, backgroundColor: bar.color, opacity: 0.85 }} />
+            <p style={{ fontSize: "0.68rem", fontWeight: 700, letterSpacing: "0.06em", color: "#8892a8", textTransform: "uppercase" }}>
+                {progress.label.toUpperCase()} PROGRESS
+            </p>
+
+            {/* Big metric */}
+            <p className="mt-3" style={{ fontSize: "1.6rem", fontWeight: 800, color: goodColor, lineHeight: 1 }}>{progress.changeText}</p>
+            <p style={{ fontSize: "0.72rem", color: "#8892a8", marginTop: 4, lineHeight: 1.4 }}>{progress.changeSubtext}</p>
+
+            {/* SVG Chart */}
+            <div className="mt-4">
+                <svg viewBox={`0 0 ${w} ${h}`} style={{ width: "100%", height: 130 }}>
+                    {/* Grid lines */}
+                    {[0, 0.25, 0.5, 0.75, 1].map((frac) => (
+                        <line key={frac} x1={padX} x2={w - padX} y1={padY + frac * plotH} y2={padY + frac * plotH}
+                            stroke="#e2e6ef" strokeWidth={0.5} />
+                    ))}
+                    {/* Area fill */}
+                    <polygon points={areaPoints} fill={goodColor} opacity={0.1} />
+                    {/* Line */}
+                    <polyline points={linePoints} fill="none" stroke={goodColor} strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" />
+                    {/* Dots */}
+                    {coords.map((c, i) => (
+                        <circle key={i} cx={c.x} cy={c.y} r={3.5} fill="#fff" stroke={goodColor} strokeWidth={2} />
+                    ))}
+                </svg>
+            </div>
+
+            {/* Month labels */}
+            <div className="flex justify-between mt-1 px-2">
+                {progress.monthLabels.map((m) => (
+                    <span key={m} style={{ fontSize: "0.62rem", color: "#8892a8" }}>{m}</span>
                 ))}
+            </div>
+
+            {/* Mini stats row */}
+            <div className="grid grid-cols-3 gap-3 mt-4 pt-4" style={{ borderTop: "1px solid #e2e6ef" }}>
+                <div className="text-center">
+                    <p style={{ fontSize: "1rem", fontWeight: 800, color: "#1a1d2e" }}>{progress.startValue}</p>
+                    <p style={{ fontSize: "0.62rem", color: "#8892a8" }}>Starting {progress.unit}</p>
+                </div>
+                <div className="text-center">
+                    <p style={{ fontSize: "1rem", fontWeight: 800, color: goodColor }}>{progress.currentValue}</p>
+                    <p style={{ fontSize: "0.62rem", color: "#8892a8" }}>Current {progress.unit}</p>
+                </div>
+                <div className="text-center">
+                    <p style={{ fontSize: "1rem", fontWeight: 800, color: "#1a1d2e" }}>{points.length}</p>
+                    <p style={{ fontSize: "0.62rem", color: "#8892a8" }}>Data points</p>
+                </div>
             </div>
         </div>
     );
@@ -380,17 +380,18 @@ function ProgressCard({ status }: { status: PatientStatus }) {
    TODO CARD (Dynamic)
    ═══════════════════════════════════════════ */
 
-function ToDoCard({ status }: { status: PatientStatus }) {
+function ToDoCard() {
+    const { status, data } = usePrototype();
     let items: { icon: React.ReactNode; text: string; done: boolean }[] = [];
 
     if (status === "waiting") {
         items = [{ icon: <AlertCircle className="w-4 h-4" style={{ color: "#ea580c" }} />, text: "Complete your profile details", done: false }];
     } else if (status === "dose_change") {
-        items = [{ icon: <MessageCircle className="w-4 h-4" style={{ color: "#7c3aed" }} />, text: "Read new dose instructions", done: false }];
+        items = [{ icon: <Pill className="w-4 h-4" style={{ color: "#7c3aed" }} />, text: "Read new dose instructions", done: false }];
     } else {
         items = [
-            { icon: <AlertCircle className="w-4 h-4" style={{ color: "#ea580c" }} />, text: "Complete monthly check-in", done: false },
-            { icon: <CheckCircle2 className="w-4 h-4" style={{ color: "#16a34a" }} />, text: "Injection this week", done: true },
+            { icon: <AlertCircle className="w-4 h-4" style={{ color: "#ea580c" }} />, text: `Complete check-in: ${data.checkinQuestion}`, done: false },
+            { icon: <CheckCircle2 className="w-4 h-4" style={{ color: "#16a34a" }} />, text: `Take your ${data.primaryMed.name}`, done: true },
             { icon: <MessageCircle className="w-4 h-4" style={{ color: "#2563eb" }} />, text: "New message from Dr. Alharbi", done: false },
         ];
     }
@@ -422,11 +423,12 @@ function ToDoCard({ status }: { status: PatientStatus }) {
 function DeclinedExtras() {
     const navigate = useNavigate();
     const p = usePatientPath();
+    const { data } = usePrototype();
     return (
         <div style={cardStyle} className="p-5">
             <p style={{ fontSize: "0.68rem", fontWeight: 700, letterSpacing: "0.06em", color: "#8892a8", textTransform: "uppercase" }}>DOCTOR'S MESSAGE</p>
             <p className="mt-3" style={{ fontSize: "0.82rem", color: "#4a5068", lineHeight: 1.6 }}>
-                "Based on your medical history and current medications, we've determined that GLP-1 treatment carries too high a risk at this time. We recommend consulting with your primary care physician about alternative weight management options. Your full payment of 627 SAR has been refunded."
+                "Based on your medical history and current medications, we've determined that {data.primaryMed.name} treatment carries too high a risk at this time. We recommend consulting with your primary care physician about alternative options. Your full payment of {data.monthlyTotal} has been refunded."
             </p>
             <p className="mt-2" style={{ fontSize: "0.72rem", color: "#8892a8" }}>— Dr. Alharbi</p>
             <button
@@ -445,29 +447,27 @@ function DeclinedExtras() {
    ═══════════════════════════════════════════ */
 
 export function Home() {
-    const [patientStatus, setPatientStatus] = useState<PatientStatus>("shipped");
+    const { status } = usePrototype();
 
-    const hideProgressAndTodo = patientStatus === "declined";
-    const showPaymentBanner = patientStatus === "payment_failed";
+    const hideProgressAndTodo = status === "declined";
+    const showPaymentBanner = status === "payment_failed";
 
     return (
         <div className="flex flex-col">
-            <StateSwitcher value={patientStatus} onChange={setPatientStatus} />
-
             <div className="p-5 md:p-8 flex flex-col gap-4">
                 {showPaymentBanner && <PaymentBanner />}
 
                 <GreetingHeader />
-                <StatusCard status={patientStatus} />
+                <StatusCard />
 
-                {patientStatus === "declined" && <DeclinedExtras />}
+                {status === "declined" && <DeclinedExtras />}
 
                 {!hideProgressAndTodo && <QuickActions />}
 
                 {!hideProgressAndTodo && (
                     <div className="grid gap-3" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))" }}>
-                        <ProgressCard status={patientStatus} />
-                        <ToDoCard status={patientStatus} />
+                        <ProgressChart />
+                        <ToDoCard />
                     </div>
                 )}
             </div>

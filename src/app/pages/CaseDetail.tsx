@@ -502,18 +502,87 @@ function ClinicalDecisionPanel({ caseData }: { caseData: CaseData }) {
   });
   const [showWarningModal, setShowWarningModal] = useState(false);
 
-  const baseMeds = [
-    { id: "oral", label: "Oral Weight Loss Kit", price: 299 },
-    { id: "semaglutide", label: "Generic Semaglutide 0.25mg", price: 549, star: true },
-    { id: "ozempic", label: "Ozempic 0.25mg", price: 599 },
-    { id: "mounjaro", label: "Mounjaro 2.5mg", price: 799 },
-  ];
+  interface MedOption { id: string; label: string; price: number; star?: boolean }
+  let baseMeds: MedOption[] = [];
+  let addOnItems: MedOption[] = [];
 
-  const addOnItems = [
-    { id: "metformin", label: "Metformin 500mg", price: 49 },
-    { id: "b12", label: "Vitamin B12", price: 29 },
-    { id: "bupropion", label: "Bupropion XL 150mg", price: 79 },
-  ];
+  switch (caseData.type) {
+    case "Weight Loss":
+      baseMeds = [
+        { id: "oral", label: "Oral Weight Loss Kit", price: 299 },
+        { id: "semaglutide", label: "Generic Semaglutide 0.25mg", price: 549, star: true },
+        { id: "ozempic", label: "Ozempic 0.25mg", price: 599 },
+        { id: "mounjaro", label: "Mounjaro 2.5mg", price: 799 },
+      ];
+      addOnItems = [
+        { id: "metformin", label: "Metformin 500mg", price: 49 },
+        { id: "b12", label: "Vitamin B12", price: 29 },
+        { id: "bupropion", label: "Bupropion XL 150mg", price: 79 },
+      ];
+      break;
+    case "Sexual Health":
+    case "ED":
+      baseMeds = [
+        { id: "sildenafil", label: "Sildenafil 50mg", price: 199, star: true },
+        { id: "tadalafil", label: "Tadalafil 10mg", price: 249 },
+      ];
+      addOnItems = [
+        { id: "delay_spray", label: "Delay Spray", price: 45 },
+        { id: "performance_gummies", label: "Performance Gummies", price: 60 },
+      ];
+      break;
+    case "Relieve Menopause":
+    case "Ease Menopause":
+      baseMeds = [
+        { id: "estradiol", label: "Estradiol Patch 0.05mg", price: 189, star: true },
+        { id: "progesterone", label: "Progesterone 100mg", price: 149 },
+      ];
+      addOnItems = [
+        { id: "vaginal_cream", label: "Vaginal Estradiol Cream", price: 89 },
+        { id: "bone_support", label: "Calcium + D3 Support", price: 35 },
+      ];
+      break;
+    case "Hair Regrowth":
+    case "Grow Fuller Hair":
+    case "Hair Loss":
+      baseMeds = [
+        { id: "finasteride_oral", label: "Finasteride 1mg (Oral)", price: 129 },
+        { id: "topical_combo", label: "Topical Finasteride + Minoxidil", price: 179, star: true },
+        { id: "minoxidil_only", label: "Topical Minoxidil 5%", price: 89 },
+      ];
+      addOnItems = [
+        { id: "biotin", label: "Biotin Gummies", price: 39 },
+        { id: "thickening_shampoo", label: "Thickening Shampoo", price: 45 },
+      ];
+      break;
+    case "Reduce Anxiety":
+    case "Mental Health":
+      baseMeds = [
+        { id: "sertraline", label: "Sertraline 50mg", price: 149, star: true },
+        { id: "escitalopram", label: "Escitalopram 10mg", price: 159 },
+      ];
+      addOnItems = [
+        { id: "sleep_aid", label: "Melatonin Sleep Aid", price: 25 },
+        { id: "therapy_session", label: "Add Therapy Session", price: 199 },
+      ];
+      break;
+    case "Testosterone":
+      baseMeds = [
+        { id: "trt_cream", label: "Testosterone Cream 5%", price: 299 },
+        { id: "trt_injections", label: "Testosterone Cypionate", price: 349, star: true },
+      ];
+      addOnItems = [
+        { id: "hcg", label: "HCG", price: 150 },
+        { id: "anastrozole", label: "Anastrozole 1mg", price: 50 },
+      ];
+      break;
+    default:
+      baseMeds = [
+        { id: "consultation", label: "General Consultation Only", price: 99, star: true },
+      ];
+      addOnItems = [];
+      break;
+  }
 
   const toggleAddOn = (id: string) =>
     setAddOns((prev) => ({ ...prev, [id]: !prev[id] }));

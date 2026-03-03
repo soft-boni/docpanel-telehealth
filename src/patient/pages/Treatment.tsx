@@ -3,6 +3,7 @@ import { usePatientPath } from "../PatientBaseContext";
 import { toast } from "sonner";
 import { useState } from "react";
 import { PatientModal } from "../components/PatientModal";
+import { usePrototype } from "../PrototypeContext";
 
 /* ─── Shared ─── */
 
@@ -26,6 +27,8 @@ const sectionTitle: React.CSSProperties = {
    ═══════════════════════════════════════════ */
 
 function CurrentMedications() {
+    const { data } = usePrototype();
+
     return (
         <div style={cardStyle} className="p-5">
             <p style={sectionTitle}>CURRENT MEDICATIONS</p>
@@ -49,53 +52,51 @@ function CurrentMedications() {
                         fontSize: "1.2rem",
                     }}
                 >
-                    💉
+                    {data.primaryMed.emoji}
                 </div>
                 <div className="flex-1 min-w-0">
                     <p style={{ fontSize: "0.88rem", fontWeight: 700, color: "#1a1d2e" }}>
-                        Generic Semaglutide 0.5mg
+                        {data.primaryMed.name}
                     </p>
                     <p style={{ fontSize: "0.7rem", color: "#8892a8", marginTop: 2 }}>
-                        Inject once weekly · Every Monday · Abdomen or thigh
+                        {data.primaryMed.instructions}
                     </p>
                 </div>
                 <div className="text-right shrink-0">
                     <p style={{ fontSize: "0.88rem", fontWeight: 700, color: "#16a34a" }}>
-                        549 SAR
+                        {data.primaryMed.price}
                     </p>
-                    <p style={{ fontSize: "0.62rem", color: "#8892a8" }}>/month</p>
                 </div>
             </div>
 
             {/* Add-ons */}
-            <div className="flex flex-col gap-2 mt-3">
-                {[
-                    { emoji: "💊", name: "Metformin 500mg", sub: "Take daily with dinner", price: "+49 SAR" },
-                    { emoji: "💊", name: "Vitamin B12", sub: "Take daily", price: "+29 SAR" },
-                ].map((addon) => (
-                    <div
-                        key={addon.name}
-                        className="flex items-center gap-3 p-3"
-                        style={{ border: "1px solid #e2e6ef", borderRadius: 8, background: "#fff" }}
-                    >
-                        <span style={{ fontSize: "1.1rem" }}>{addon.emoji}</span>
-                        <div className="flex-1 min-w-0">
-                            <p style={{ fontSize: "0.84rem", fontWeight: 600, color: "#1a1d2e" }}>
-                                {addon.name}
-                            </p>
-                            <p style={{ fontSize: "0.68rem", color: "#8892a8", marginTop: 1 }}>
-                                {addon.sub}
+            {data.addOns.length > 0 && (
+                <div className="flex flex-col gap-2 mt-3">
+                    {data.addOns.map((addon) => (
+                        <div
+                            key={addon.name}
+                            className="flex items-center gap-3 p-3"
+                            style={{ border: "1px solid #e2e6ef", borderRadius: 8, background: "#fff" }}
+                        >
+                            <span style={{ fontSize: "1.1rem" }}>{addon.emoji}</span>
+                            <div className="flex-1 min-w-0">
+                                <p style={{ fontSize: "0.84rem", fontWeight: 600, color: "#1a1d2e" }}>
+                                    {addon.name}
+                                </p>
+                                <p style={{ fontSize: "0.68rem", color: "#8892a8", marginTop: 1 }}>
+                                    {addon.instructions}
+                                </p>
+                            </div>
+                            <p
+                                className="shrink-0"
+                                style={{ fontSize: "0.84rem", fontWeight: 700, color: "#16a34a" }}
+                            >
+                                {addon.price}
                             </p>
                         </div>
-                        <p
-                            className="shrink-0"
-                            style={{ fontSize: "0.84rem", fontWeight: 700, color: "#16a34a" }}
-                        >
-                            {addon.price}
-                        </p>
-                    </div>
-                ))}
-            </div>
+                    ))}
+                </div>
+            )}
 
             {/* Total */}
             <div
@@ -104,7 +105,7 @@ function CurrentMedications() {
             >
                 <span style={{ fontSize: "0.82rem", color: "#8892a8" }}>Monthly total</span>
                 <span style={{ fontSize: "1rem", fontWeight: 700, color: "#16a34a" }}>
-                    627 SAR/mo
+                    {data.monthlyTotal}
                 </span>
             </div>
         </div>
@@ -115,27 +116,16 @@ function CurrentMedications() {
    2. DOSE JOURNEY TIMELINE
    ═══════════════════════════════════════════ */
 
-interface DoseStep {
-    dose: string;
-    sub: string;
-    status: "done" | "current" | "future";
-}
-
-const doseSteps: DoseStep[] = [
-    { dose: "0.25mg", sub: "Wk 1-4", status: "done" },
-    { dose: "0.5mg", sub: "Current", status: "current" },
-    { dose: "1.0mg", sub: "Wk 9-12", status: "future" },
-    { dose: "Maintain", sub: "Wk 13+", status: "future" },
-];
-
 function DoseJourney() {
+    const { data } = usePrototype();
+
     return (
         <div style={cardStyle} className="p-5">
             <p style={sectionTitle}>YOUR DOSE JOURNEY</p>
 
             <div className="flex items-center justify-between mt-5">
-                {doseSteps.map((step, i) => {
-                    const isLast = i === doseSteps.length - 1;
+                {data.doseSteps.map((step, i) => {
+                    const isLast = i === data.doseSteps.length - 1;
                     return (
                         <div key={step.dose} className="flex items-center flex-1">
                             <div className="flex flex-col items-center">
@@ -215,26 +205,27 @@ function DoseJourney() {
    3. WEIGHT PROGRESS GRAPH
    ═══════════════════════════════════════════ */
 
-function WeightProgress() {
-    const barHeights = [95, 85, 72, 60, 52, 48, 42, 38];
-    const months = ["Nov", "Dec", "Jan", "Feb"];
-    const [isWeightModalOpen, setWeightModalOpen] = useState(false);
-    const [weightInput, setWeightInput] = useState("");
+function ProgressChart() {
+    const { data } = usePrototype();
+    const { label, unit, direction, startValue, currentValue, changeText, barData, monthLabels } = data.progress;
 
-    const handleLogWeight = () => {
-        if (!weightInput) return;
-        toast.success(`Weight logged: ${weightInput} kg!`);
-        setWeightModalOpen(false);
-        setWeightInput("");
+    const [isModalOpen, setModalOpen] = useState(false);
+    const [logInput, setLogInput] = useState("");
+
+    const handleLog = () => {
+        if (!logInput) return;
+        toast.success(`${label} logged: ${logInput} ${unit}!`);
+        setModalOpen(false);
+        setLogInput("");
     };
 
     return (
         <div style={cardStyle} className="p-5">
             {/* Header */}
             <div className="flex items-center justify-between">
-                <p style={sectionTitle}>WEIGHT PROGRESS</p>
+                <p style={sectionTitle}>{label.toUpperCase()} PROGRESS</p>
                 <button
-                    onClick={() => setWeightModalOpen(true)}
+                    onClick={() => setModalOpen(true)}
                     className="px-3 py-1 rounded-lg transition-opacity hover:opacity-80"
                     style={{
                         backgroundColor: "#ecfdf5",
@@ -244,34 +235,34 @@ function WeightProgress() {
                         fontWeight: 600,
                     }}
                 >
-                    + Log Weight
+                    + Log {label}
                 </button>
             </div>
 
             {/* Stats */}
             <div className="flex items-center gap-4 mt-4 flex-wrap">
-                <span style={{ fontSize: "0.82rem", color: "#8892a8" }}>Start: 103 kg</span>
+                <span style={{ fontSize: "0.82rem", color: "#8892a8" }}>Start: {startValue} {unit}</span>
                 <span style={{ fontSize: "0.82rem", color: "#8892a8" }}>→</span>
                 <span style={{ fontSize: "0.82rem", color: "#1a1d2e" }}>
-                    Now: <strong style={{ color: "#16a34a" }}>94.8 kg</strong>
+                    Now: <strong style={{ color: "#16a34a" }}>{currentValue} {unit}</strong>
                 </span>
                 <span
                     className="ml-auto"
-                    style={{ fontSize: "0.92rem", fontWeight: 700, color: "#16a34a" }}
+                    style={{ fontSize: "0.92rem", fontWeight: 700, color: direction === "down" ? "#16a34a" : "#2563eb" }}
                 >
-                    -8.2 kg
+                    {changeText}
                 </span>
             </div>
 
             {/* Bar Chart */}
             <div className="flex items-end gap-2 mt-5" style={{ height: 60 }}>
-                {barHeights.map((h, i) => (
+                {barData.map((h, i) => (
                     <div
                         key={i}
                         className="flex-1 rounded-t-md"
                         style={{
                             height: `${h}%`,
-                            backgroundColor: i === barHeights.length - 1 ? "#16a34a" : "#2563eb",
+                            backgroundColor: i === barData.length - 1 ? "#16a34a" : "#2563eb",
                             opacity: 0.85,
                         }}
                     />
@@ -280,28 +271,28 @@ function WeightProgress() {
 
             {/* X-Axis */}
             <div className="flex justify-between mt-2">
-                {months.map((m) => (
-                    <span key={m} style={{ fontSize: "0.56rem", color: "#8892a8" }}>
+                {monthLabels.map((m, i) => (
+                    <span key={i} style={{ fontSize: "0.56rem", color: "#8892a8" }}>
                         {m}
                     </span>
                 ))}
             </div>
 
-            {/* WEIGHT MODAL */}
+            {/* TRACKING MODAL */}
             <PatientModal
-                isOpen={isWeightModalOpen}
-                onClose={() => setWeightModalOpen(false)}
-                title="Log Current Weight"
+                isOpen={isModalOpen}
+                onClose={() => setModalOpen(false)}
+                title={`Log Current ${label}`}
             >
                 <div>
                     <label style={{ fontSize: "0.72rem", fontWeight: 600, color: "#8892a8", textTransform: "uppercase" }}>
-                        Current Weight (kg)
+                        Current {label} ({unit})
                     </label>
                     <input
                         type="number"
-                        placeholder="e.g. 94.5"
-                        value={weightInput}
-                        onChange={(e) => setWeightInput(e.target.value)}
+                        placeholder={`e.g. ${currentValue}`}
+                        value={logInput}
+                        onChange={(e) => setLogInput(e.target.value)}
                         className="w-full mt-2 outline-none transition-colors focus:border-[#2563eb]"
                         style={{
                             backgroundColor: "#f3f4f8",
@@ -314,14 +305,14 @@ function WeightProgress() {
                     />
                     <div className="flex gap-3 mt-6">
                         <button
-                            onClick={() => setWeightModalOpen(false)}
+                            onClick={() => setModalOpen(false)}
                             className="flex-1 py-2.5 rounded-xl hover:bg-[#f3f4f8] transition-colors"
                             style={{ border: "1px solid #e2e6ef", fontSize: "0.82rem", fontWeight: 600, color: "#4a5068" }}
                         >
                             Cancel
                         </button>
                         <button
-                            onClick={handleLogWeight}
+                            onClick={handleLog}
                             className="flex-1 py-2.5 rounded-xl hover:opacity-90 transition-opacity"
                             style={{ backgroundColor: "#16a34a", border: "none", fontSize: "0.82rem", fontWeight: 600, color: "#fff" }}
                         >
@@ -339,6 +330,7 @@ function WeightProgress() {
    ═══════════════════════════════════════════ */
 
 function ActionButtons() {
+    const { data } = usePrototype();
     const navigate = useNavigate();
     const p = usePatientPath();
     const [isSideEffectOpen, setSideEffectOpen] = useState(false);
@@ -346,7 +338,7 @@ function ActionButtons() {
     const [selectedEffects, setSelectedEffects] = useState<string[]>([]);
 
     const handleReport = () => {
-        toast.success("Side effects reported to your doctor.");
+        toast.success("Report submitted to your doctor.");
         setSideEffectOpen(false);
         setSelectedEffects([]);
     };
@@ -361,8 +353,6 @@ function ActionButtons() {
             prev.includes(eff) ? prev.filter(e => e !== eff) : [...prev, eff]
         );
     };
-
-    const effectsList = ["Nausea", "Headache", "Fatigue", "Dizziness", "Stomach Pain", "Other"];
 
     return (
         <div className="grid grid-cols-3 gap-2">
@@ -417,7 +407,7 @@ function ActionButtons() {
                         Select any symptoms you have experienced recently. Your doctor will review these.
                     </p>
                     <div className="grid grid-cols-2 gap-2 mt-2">
-                        {effectsList.map(eff => {
+                        {data.sideEffects.map(eff => {
                             const active = selectedEffects.includes(eff);
                             return (
                                 <button
@@ -506,7 +496,7 @@ export function Treatment() {
             </h2>
             <CurrentMedications />
             <DoseJourney />
-            <WeightProgress />
+            <ProgressChart />
             <ActionButtons />
         </div>
     );

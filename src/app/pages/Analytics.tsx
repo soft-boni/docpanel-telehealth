@@ -397,7 +397,19 @@ export function Analytics() {
         </div>
         <div className="flex items-center gap-2.5">
           <FilterButton label="Last 30 Days" options={["Last 7 Days", "Last 30 Days", "Last 3 Months", "This Year"]} />
-          <FilterButton label="Service Category" options={["All Categories", "Weight Loss", "ED", "Hair Loss", "Skincare"]} />
+          <FilterButton label="Service Category" options={[
+            "All Categories",
+            "Weight Loss",
+            "Hair Loss",
+            "Hair Regrowth",
+            "Testosterone",
+            "Mental Health",
+            "Sexual Health",
+            "Grow Fuller Hair",
+            "Relieve Menopause",
+            "Ease Menopause",
+            "Reduce Anxiety"
+          ]} />
         </div>
       </div>
 

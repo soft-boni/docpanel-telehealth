@@ -35,7 +35,7 @@ export const casesData: CaseData[] = [
     gender: "Male",
     bmi: 31.2,
     location: "Riyadh",
-    type: "ED",
+    type: "Sexual Health",
     flag: "red",
     alert: "Takes nitrates",
     isUrgent: true,
@@ -150,6 +150,62 @@ export const casesData: CaseData[] = [
       { text: "Titration due: 0.25mg → 0.5mg escalation.", level: "yellow" },
     ],
   },
+  {
+    id: "case-yellow-meno",
+    patientName: "Sarah A.",
+    initials: "SA",
+    email: "sarah.a@email.com",
+    age: 48,
+    gender: "Female",
+    bmi: 24.5,
+    location: "Riyadh",
+    type: "Relieve Menopause",
+    flag: "yellow",
+    alert: "Family hx of breast cancer",
+    isUrgent: false,
+    meds: [],
+    caseId: "CASE-0899",
+    timer: "⏱ 4h 10m",
+    aiSummary:
+      "48yo female seeking relief for severe hot flashes and night sweats. Reports family history of breast cancer (maternal aunt). Otherwise healthy.",
+    aiSuggestion:
+      "Due to family history of breast cancer, systemic HRT requires careful consideration. Consider non-hormonal options like SSRIs/SNRIs first, or refer for mammogram before initiating estradiol.",
+    questionnaire: [
+      { q: "Main symptoms?", a: "Hot flashes 5-6 times a day, waking up drenched in sweat." },
+      { q: "Family history of cancer?", a: "Yes, aunt had breast cancer at age 60." },
+    ],
+    flags: [
+      { text: "Review required due to family cancer history.", level: "yellow" },
+    ],
+  },
+  {
+    id: "case-green-hair",
+    patientName: "Layla M.",
+    initials: "LM",
+    email: "layla.m@email.com",
+    age: 32,
+    gender: "Female",
+    bmi: 22.1,
+    location: "Jeddah",
+    type: "Grow Fuller Hair",
+    flag: "green",
+    alert: "No flags ✓",
+    isUrgent: false,
+    meds: [],
+    caseId: "CASE-0902",
+    timer: "⏱ 1h 20m",
+    aiSummary:
+      "32yo female experiencing diffuse hair thinning over the last 8 months. No recent stress events or dietary restrictions. Labs WNL.",
+    aiSuggestion:
+      "Clear candidate for Topical Minoxidil 5%. Safe to prescribe. No contraindications.",
+    questionnaire: [
+      { q: "Describe your hair loss", a: "General thinning everywhere, especially at the part." },
+      { q: "Currently pregnant or nursing?", a: "No." },
+    ],
+    flags: [
+      { text: "All clear — suitable for topical treatment.", level: "green" },
+    ],
+  }
 ];
 
 export function getCaseById(id: string): CaseData | undefined {
@@ -238,10 +294,30 @@ export const patientsData: PatientData[] = [
     name: "Ahmed M.",
     initials: "AM",
     age: 34,
-    service: "ED",
+    service: "Sexual Health",
     status: "Cancelled",
     medication: "None",
     nextRefill: "N/A",
+  },
+  {
+    id: "p-104",
+    name: "Sarah A.",
+    initials: "SA",
+    age: 48,
+    service: "Relieve Menopause",
+    status: "Active",
+    medication: "Estradiol Patch",
+    nextRefill: "Apr 15",
+  },
+  {
+    id: "p-105",
+    name: "Noura A.",
+    initials: "NA",
+    age: 27,
+    service: "Reduce Anxiety",
+    status: "Active",
+    medication: "Sertraline 50mg",
+    nextRefill: "Mar 10",
   },
 ];
 
