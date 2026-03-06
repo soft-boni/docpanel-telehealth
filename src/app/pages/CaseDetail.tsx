@@ -668,6 +668,309 @@ function LabsReview({ patient }: { patient: any }) {
 }
 
 // ════════════════════════════════════════
+// 7. MENTAL HEALTH
+// ════════════════════════════════════════
+
+function MentalHealthReview({ patient }: { patient: any }) {
+  const moodLog = patient.trackingData?.moodLog || [];
+  const phq9Log = patient.trackingData?.phq9Log || [];
+  const log = moodLog.length > 0 ? moodLog : phq9Log;
+  const scoreKey = moodLog.length > 0 ? "gad7Score" : "phq9Score";
+  const scaleName = moodLog.length > 0 ? "GAD-7" : "PHQ-9";
+  const noteKey = moodLog.length > 0 ? "note" : "notes";
+
+  const getSeverity = (score: number, scale: string) => {
+    if (scale === "GAD-7") {
+      if (score >= 15) return { label: "Severe", color: "bg-red-100 text-red-700" };
+      if (score >= 10) return { label: "Moderate", color: "bg-amber-100 text-amber-700" };
+      if (score >= 5) return { label: "Mild", color: "bg-yellow-100 text-yellow-700" };
+      return { label: "Minimal", color: "bg-emerald-100 text-emerald-700" };
+    }
+    if (score >= 20) return { label: "Severe", color: "bg-red-100 text-red-700" };
+    if (score >= 15) return { label: "Moderately Severe", color: "bg-orange-100 text-orange-700" };
+    if (score >= 10) return { label: "Moderate", color: "bg-amber-100 text-amber-700" };
+    if (score >= 5) return { label: "Mild", color: "bg-yellow-100 text-yellow-700" };
+    return { label: "Minimal", color: "bg-emerald-100 text-emerald-700" };
+  };
+
+  const latestScore = log.length > 0 ? log[log.length - 1][scoreKey] : 0;
+  const severity = getSeverity(latestScore, scaleName);
+  const firstScore = log.length > 0 ? log[0][scoreKey] : 0;
+  const change = latestScore - firstScore;
+
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="lg:col-span-2 flex flex-col gap-6">
+        {/* Score Trend */}
+        <div className={cardClass}>
+          <h3 className="text-lg font-bold text-slate-900 mb-2">{scaleName} Score Trend</h3>
+          <p className="text-sm text-slate-500 mb-6">
+            Start: <span className="font-bold font-mono text-slate-900">{firstScore}</span>
+            {" → Current: "}
+            <span className={`font-bold font-mono ${change < 0 ? "text-emerald-600" : "text-red-600"}`}>{latestScore}</span>
+            <span className={`ml-2 px-2 py-0.5 rounded-full text-xs font-bold ${change < 0 ? "bg-emerald-50 text-emerald-700" : "bg-red-50 text-red-700"}`}>
+              {change > 0 ? "+" : ""}{change} pts
+            </span>
+          </p>
+          <div className="flex items-end gap-4" style={{ height: 140 }}>
+            {log.map((entry: any, i: number) => {
+              const maxScore = scaleName === "GAD-7" ? 21 : 27;
+              const pct = (entry[scoreKey] / maxScore) * 100;
+              const isLast = i === log.length - 1;
+              return (
+                <div key={i} className="flex-1 flex flex-col items-center justify-end gap-1">
+                  <span className="text-xs font-bold font-mono text-slate-700">{entry[scoreKey]}</span>
+                  <div className="w-full rounded-t-lg" style={{
+                    height: `${Math.max(15, pct)}%`, minHeight: 16,
+                    background: isLast
+                      ? `linear-gradient(180deg, ${entry[scoreKey] <= 5 ? "#16a34a" : entry[scoreKey] <= 10 ? "#f59e0b" : "#ef4444"}, ${entry[scoreKey] <= 5 ? "#22c55e" : entry[scoreKey] <= 10 ? "#fbbf24" : "#f87171"})`
+                      : "linear-gradient(180deg, #6366f1, #818cf8)",
+                    borderRadius: "8px 8px 0 0",
+                  }} />
+                  <span className="text-[10px] text-slate-500 font-medium">{entry.date.split("-").slice(1).join("/")}</span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Clinical Timeline */}
+        <div className={cardClass}>
+          <h3 className="text-sm uppercase tracking-wider font-bold text-slate-500 mb-4">Clinical Notes Timeline</h3>
+          <div className="flex flex-col gap-0">
+            {log.map((entry: any, i: number) => (
+              <div key={i} className={`flex items-start gap-4 py-3 ${i < log.length - 1 ? "border-b border-slate-100" : ""}`}>
+                <div className="flex flex-col items-center shrink-0">
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white ${entry[scoreKey] <= 5 ? "bg-emerald-500" : entry[scoreKey] <= 10 ? "bg-amber-500" : "bg-red-500"
+                    }`}>{entry[scoreKey]}</div>
+                </div>
+                <div>
+                  <div className="text-sm font-bold text-slate-900">{entry.date}</div>
+                  <p className="text-sm text-slate-500 mt-0.5">{entry[noteKey] || "No notes"}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Right Panel */}
+      <div className="flex flex-col gap-6">
+        <div className="bg-white border border-slate-200 rounded-2xl shadow-sm p-6 sticky top-24">
+          <h3 className="text-lg font-bold text-slate-900 mb-1">Risk Assessment</h3>
+          <p className="text-sm text-slate-500 mb-5">Current severity level</p>
+
+          <div className={`px-4 py-3 rounded-xl mb-5 ${severity.color}`}>
+            <div className="text-xs font-bold uppercase tracking-wider">Current Severity</div>
+            <div className="text-xl font-bold mt-1">{severity.label} ({latestScore}/{scaleName === "GAD-7" ? 21 : 27})</div>
+          </div>
+
+          {/* Safety Check */}
+          <div className="bg-slate-50 rounded-xl p-4 mb-5 border border-slate-200">
+            <div className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Safety Screening</div>
+            {Object.entries(patient.questionnaire || {}).slice(0, 1).map(([q, a]) => (
+              <div key={q} className="flex items-start gap-2">
+                <div className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 mt-0.5 ${(a as string).toLowerCase().includes("no") ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"
+                  }`}>
+                  <span className="text-[10px] font-bold">{(a as string).toLowerCase().includes("no") ? "✓" : "!"}</span>
+                </div>
+                <div>
+                  <p className="text-xs font-bold text-slate-700">{q}</p>
+                  <p className="text-xs text-slate-500">{a as string}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Medication Management */}
+          <div className="mb-5">
+            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Current Rx</label>
+            <div className="bg-indigo-50 border border-indigo-200 rounded-xl px-4 py-3">
+              <div className="text-sm font-bold text-indigo-900">{patient.currentMedication}</div>
+            </div>
+          </div>
+          <div>
+            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Adjust Dose</label>
+            <select className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold text-slate-900 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+              <option>5mg (Reduce)</option>
+              <option>10mg (Current)</option>
+              <option>15mg (Increase)</option>
+              <option>20mg (Maximum)</option>
+            </select>
+          </div>
+
+          <button className="w-full mt-5 py-3 rounded-xl text-white font-bold bg-indigo-600 hover:bg-indigo-700 transition-colors text-sm">
+            ✓ Approve & Continue
+          </button>
+          <button className="w-full mt-2 py-3 rounded-xl text-slate-700 font-bold border border-slate-200 bg-white hover:bg-slate-50 transition-colors text-sm">
+            📞 Escalate (Schedule Call)
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ════════════════════════════════════════
+// 8. SEXUAL HEALTH
+// ════════════════════════════════════════
+
+function SexualHealthReview({ patient }: { patient: any }) {
+  const refill = patient.trackingData?.refillSchedule;
+  const comfortLog = patient.trackingData?.comfortLog || [];
+  const takesNitrates = patient.questionnaire?.takesNitrates === true;
+  const isFemale = patient.gender === "Female";
+
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="lg:col-span-2 flex flex-col gap-6">
+        {/* Safety Alert */}
+        {takesNitrates && (
+          <div className="bg-red-50 border-2 border-red-300 rounded-2xl p-6">
+            <div className="flex items-start gap-3">
+              <AlertCircle className="w-6 h-6 text-red-600 shrink-0 mt-0.5" />
+              <div>
+                <h3 className="text-lg font-bold text-red-900">⚠️ CRITICAL: Nitrate Interaction Risk</h3>
+                <p className="text-sm text-red-700 mt-2 leading-relaxed">
+                  Patient reports taking nitrates (often prescribed for chest pain). <strong>PDE5 inhibitors (Sildenafil, Tadalafil) are absolutely contraindicated</strong> with nitrate use due to risk of severe hypotension.
+                </p>
+                <p className="text-sm font-bold text-red-800 mt-3">Action Required: Confirm nitrate usage, consider alternative treatment, or decline Rx.</p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Refill & Status */}
+        <div className={cardClass}>
+          <h3 className="text-lg font-bold text-slate-900 mb-4">{isFemale ? "Treatment Overview" : "Prescription & Refill Status"}</h3>
+          <div className="grid grid-cols-2 gap-4 mb-4">
+            <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
+              <div className="text-xs text-slate-500 font-medium mb-1">Current Medication</div>
+              <div className="text-base font-bold text-slate-900">{patient.currentMedication}</div>
+            </div>
+            <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
+              <div className="text-xs text-slate-500 font-medium mb-1">{refill ? "Refill Status" : "Plan"}</div>
+              <div className="text-base font-bold text-slate-900">{refill?.status || patient.planName}</div>
+            </div>
+          </div>
+          {refill && (
+            <div className="grid grid-cols-2 gap-4">
+              <div className="bg-blue-50 p-4 rounded-xl border border-blue-100">
+                <div className="text-xs text-blue-600 font-bold mb-1">Last Refill</div>
+                <div className="text-lg font-bold text-blue-900">{refill.lastRefill}</div>
+              </div>
+              <div className="bg-blue-50 p-4 rounded-xl border border-blue-100">
+                <div className="text-xs text-blue-600 font-bold mb-1">Next Refill</div>
+                <div className="text-lg font-bold text-blue-900">{refill.nextRefill}</div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Comfort Log for Female */}
+        {isFemale && comfortLog.length > 0 && (
+          <div className={cardClass}>
+            <h3 className="text-lg font-bold text-slate-900 mb-2">Comfort Score Trend</h3>
+            <p className="text-sm text-slate-500 mb-6">
+              Start: <span className="font-bold font-mono text-slate-900">{comfortLog[0].comfortScore}/10</span>
+              {" → Now: "}
+              <span className="font-bold font-mono text-emerald-600">{comfortLog[comfortLog.length - 1].comfortScore}/10</span>
+            </p>
+            <div className="flex items-end gap-4" style={{ height: 120 }}>
+              {comfortLog.map((entry: any, i: number) => {
+                const pct = (entry.comfortScore / 10) * 100;
+                const isLast = i === comfortLog.length - 1;
+                return (
+                  <div key={i} className="flex-1 flex flex-col items-center justify-end gap-1">
+                    <span className="text-xs font-bold font-mono text-slate-700">{entry.comfortScore}</span>
+                    <div className="w-full rounded-t-lg" style={{
+                      height: `${Math.max(15, pct)}%`, minHeight: 16,
+                      background: isLast ? "linear-gradient(180deg, #16a34a, #22c55e)" : "linear-gradient(180deg, #ec4899, #f472b6)",
+                      borderRadius: "8px 8px 0 0",
+                    }} />
+                    <span className="text-[10px] text-slate-500 font-medium">{entry.date.split("-").slice(1).join("/")}</span>
+                  </div>
+                );
+              })}
+            </div>
+            <div className="mt-4 flex flex-col gap-2">
+              {comfortLog.map((entry: any, i: number) => (
+                <div key={i} className="text-xs text-slate-500 flex gap-2">
+                  <span className="font-mono font-bold text-slate-700 shrink-0 w-16">{entry.date.split("-").slice(1).join("/")}</span>
+                  <span>{entry.notes}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Questionnaire */}
+        <div className={`${cardClass} bg-slate-50`}>
+          <h3 className="text-sm uppercase tracking-wider font-bold text-slate-500 mb-4">Intake Responses</h3>
+          <div className="flex flex-col gap-3">
+            {Object.entries(patient.questionnaire || {}).filter(([k]) => k !== "takesNitrates").map(([q, a]) => (
+              <div key={q} className="bg-white p-3 rounded-xl border border-slate-200">
+                <p className="text-xs font-bold text-slate-700">{q}</p>
+                <p className="text-sm text-slate-500 mt-0.5">{a as string}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Right Panel */}
+      <div className="flex flex-col gap-6">
+        <div className="bg-white border border-slate-200 rounded-2xl shadow-sm p-6 sticky top-24">
+          <h3 className="text-lg font-bold text-slate-900 mb-1">{isFemale ? "Treatment Builder" : "Rx Decision"}</h3>
+          <p className="text-sm text-slate-500 mb-6">{takesNitrates ? "⚠️ Nitrate interaction detected" : "Review and prescribe"}</p>
+
+          <div className="mb-5">
+            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Medication</label>
+            <select className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold text-slate-900 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+              {isFemale ? (
+                <>
+                  <option>Vaginal Estrogen Cream 0.01%</option>
+                  <option>Ospemifene 60mg Oral</option>
+                  <option>DHEA Vaginal Insert 6.5mg</option>
+                </>
+              ) : (
+                <>
+                  <option>Tadalafil 5mg Daily</option>
+                  <option>Tadalafil 10mg PRN</option>
+                  <option>Tadalafil 20mg PRN</option>
+                  <option>Sildenafil 50mg PRN</option>
+                  <option>Sildenafil 100mg PRN</option>
+                </>
+              )}
+            </select>
+          </div>
+
+          {takesNitrates ? (
+            <>
+              <button className="w-full py-3 rounded-xl text-white font-bold bg-red-600 hover:bg-red-700 transition-colors text-sm">
+                ✕ Decline Prescription (Contraindicated)
+              </button>
+              <button className="w-full mt-2 py-3 rounded-xl text-slate-700 font-bold border border-slate-200 bg-white hover:bg-slate-50 transition-colors text-sm">
+                💬 Message Patient for Clarification
+              </button>
+            </>
+          ) : (
+            <>
+              <button className="w-full py-3 rounded-xl text-white font-bold bg-emerald-600 hover:bg-emerald-700 transition-colors text-sm">
+                ✓ Approve Prescription
+              </button>
+              <button className="w-full mt-2 py-3 rounded-xl text-slate-700 font-bold border border-slate-200 bg-white hover:bg-slate-50 transition-colors text-sm">
+                🔄 Approve Refill
+              </button>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ════════════════════════════════════════
 // DEFAULT FALLBACK
 // ════════════════════════════════════════
 
@@ -696,6 +999,8 @@ export function CaseDetail() {
     case "Skincare": ViewComponent = SkincareReview; break;
     case "Hair Regrowth": ViewComponent = HairRegrowthReview; break;
     case "Labs": ViewComponent = LabsReview; break;
+    case "Mental Health": ViewComponent = MentalHealthReview; break;
+    case "Sexual Health": ViewComponent = SexualHealthReview; break;
     default: ViewComponent = DefaultReview; break;
   }
 
