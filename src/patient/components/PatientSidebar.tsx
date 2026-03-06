@@ -10,6 +10,7 @@ import {
     HelpCircle,
     LogOut,
     ChevronUp,
+    Microscope,
 } from "lucide-react";
 import { EviraLogo } from "../../app/components/EviraLogo";
 import { usePatientBase } from "../PatientBaseContext";
@@ -25,6 +26,7 @@ interface NavItem {
 const navDefs: NavItem[] = [
     { path: "/", icon: Home, label: "Home", end: true },
     { path: "/treatment", icon: Pill, label: "My Treatment" },
+    { path: "/labs", icon: Microscope, label: "My Labs" },
     { path: "/orders", icon: Package, label: "Orders & Shipping" },
     { path: "/messages", icon: MessageSquare, label: "Messages", badge: 1 },
     { path: "/profile", icon: Heart, label: "Health Profile" },

@@ -5,6 +5,7 @@ import {
     Package,
     MessageSquare,
     Heart,
+    Microscope,
 } from "lucide-react";
 import { usePatientBase } from "../PatientBaseContext";
 
@@ -19,6 +20,7 @@ interface TabItem {
 const tabDefs: TabItem[] = [
     { path: "/", icon: Home, label: "Home", end: true },
     { path: "/treatment", icon: Pill, label: "Treatment" },
+    { path: "/labs", icon: Microscope, label: "Labs" },
     { path: "/orders", icon: Package, label: "Orders" },
     { path: "/messages", icon: MessageSquare, label: "Messages", dot: true },
     { path: "/profile", icon: Heart, label: "Profile" },

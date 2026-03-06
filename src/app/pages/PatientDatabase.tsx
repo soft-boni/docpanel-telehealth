@@ -1,264 +1,133 @@
-import { Search, ChevronDown, MessageSquare, Eye, FileText } from "lucide-react";
+import { Search, ChevronDown, MessageSquare, Eye } from "lucide-react";
 import { useNavigate } from "react-router";
+import { mockPatients } from "../../mockDatabase";
+import { usePersona } from "../../PersonaContext";
 
-/* ─── Data ─── */
-
-interface Patient {
-  id: string;
-  name: string;
-  age: number;
-  service: string;
-  status: "Active" | "Paused" | "Cancelled";
-  medication: string;
-  nextRefill: string;
-  refillOverdue?: boolean;
+function getInitials(name: string) {
+  return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
 }
-
-const patients: Patient[] = [
-  {
-    id: "p-101",
-    name: "Omar Al-Rashid",
-    age: 42,
-    service: "Weight Loss",
-    status: "Active",
-    medication: "Semaglutide 1.0mg",
-    nextRefill: "Mar 1",
-  },
-  {
-    id: "p-102",
-    name: "Turki Al-Nasser",
-    age: 28,
-    service: "Hair Loss",
-    status: "Paused",
-    medication: "Finasteride",
-    nextRefill: "Overdue",
-    refillOverdue: true,
-  },
-  {
-    id: "p-103",
-    name: "Ahmed M.",
-    age: 34,
-    service: "ED",
-    status: "Cancelled",
-    medication: "None",
-    nextRefill: "N/A",
-  },
-];
-
-const statusConfig: Record<
-  Patient["status"],
-  { emoji: string; bg: string; text: string }
-> = {
-  Active: { emoji: "🟢", bg: "rgba(22,163,74,0.1)", text: "#16a34a" },
-  Paused: { emoji: "🟡", bg: "rgba(234,88,12,0.1)", text: "#ea580c" },
-  Cancelled: { emoji: "⚪", bg: "rgba(136,146,168,0.1)", text: "#8892a8" },
-};
-
-/* ─── Sub-components ─── */
-
-function FilterButton({ label, options = ["All"] }: { label: string, options?: string[] }) {
-  return (
-    <div className="relative">
-      <select
-        className="appearance-none flex items-center gap-1.5 pl-3.5 pr-8 py-2 rounded-xl border border-[#e2e6ef] bg-white text-[#1a1d2e] hover:bg-[#f3f4f8] transition-colors cursor-pointer outline-none focus:border-[#2563eb]"
-        style={{ fontSize: "0.82rem", fontWeight: 500 }}
-      >
-        <option value="" disabled selected hidden>{label}</option>
-        {options.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-      </select>
-      <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#8892a8] pointer-events-none" />
-    </div>
-  );
-}
-
-function ActionBtn({
-  icon: Icon,
-  tooltip,
-  onClick,
-}: {
-  icon: React.ComponentType<{ className?: string }>;
-  tooltip: string;
-  onClick?: () => void;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      title={tooltip}
-      className="w-8 h-8 flex items-center justify-center rounded-lg border border-[#e2e6ef] bg-white text-[#8892a8] hover:text-[#1a1d2e] hover:bg-[#f3f4f8] transition-colors"
-    >
-      <Icon className="w-4 h-4" />
-    </button>
-  );
-}
-
-/* ─── Page ─── */
 
 export function PatientDatabase() {
   const navigate = useNavigate();
+  const { switchPersona } = usePersona();
+
+  const handleViewPatient = (id: string) => {
+    switchPersona(id);
+    navigate(`/patients/${id}`);
+  };
+
 
   return (
-    <div className="min-h-screen" style={{ fontFamily: "var(--font-sans)" }}>
-      {/* Top Bar */}
-      <div className="flex items-center justify-between px-8 py-5 bg-white border-b border-[#e2e6ef]">
-        <h2 style={{ fontSize: "1.3rem", fontWeight: 700, color: "#1a1d2e" }}>
-          Patients
-        </h2>
+    <div className="min-h-screen bg-[#f3f4f8] p-6 lg:p-10 font-sans">
+      <div className="max-w-[1200px] mx-auto">
 
-        <div className="flex items-center gap-2.5">
-          {/* Search */}
-          <div
-            className="flex items-center gap-2 px-3.5 py-2 rounded-xl border border-[#e2e6ef] bg-white"
-            style={{ minWidth: 160 }}
-          >
-            <Search className="w-4 h-4 text-[#8892a8]" />
-            <input
-              type="text"
-              placeholder="Search by name..."
-              className="bg-transparent outline-none border-none text-[#8892a8] placeholder-[#8892a8] w-full"
-              style={{ fontSize: "0.82rem" }}
-            />
+        {/* Header */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between pb-8 gap-4">
+          <div>
+            <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Patients Database</h1>
+            <p className="text-sm text-slate-500 mt-1 font-medium">Master patient directory</p>
           </div>
 
-          <FilterButton label="Service" options={[
-            "All Services",
-            "Weight Loss",
-            "Hair Loss",
-            "Hair Regrowth",
-            "Testosterone",
-            "Mental Health",
-            "Sexual Health",
-            "Grow Fuller Hair",
-            "Relieve Menopause",
-            "Ease Menopause",
-            "Reduce Anxiety"
-          ]} />
-          <FilterButton label="Status" options={["All Statuses", "Active", "Paused", "Cancelled"]} />
+          <div className="flex items-center gap-3">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <input
+                type="text"
+                placeholder="Search patients..."
+                className="pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all w-64"
+              />
+            </div>
+            <button className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-xl text-sm font-medium text-slate-700 hover:bg-slate-50">
+              Filter <ChevronDown className="w-4 h-4" />
+            </button>
+          </div>
         </div>
-      </div>
 
-      {/* Table */}
-      <div className="p-8">
-        <div
-          className="bg-white overflow-hidden"
-          style={{
-            border: "1px solid #e2e6ef",
-            borderRadius: 14,
-            boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
-          }}
-        >
-          <table className="w-full" style={{ fontSize: "0.84rem" }}>
-            <thead>
-              <tr style={{ backgroundColor: "#f8f9fb" }}>
-                {[
-                  "Patient Name",
-                  "Age",
-                  "Service",
-                  "Status",
-                  "Current Medication",
-                  "Next Refill",
-                  "Actions",
-                ].map((h) => (
-                  <th
-                    key={h}
-                    className="text-left px-5 py-3"
-                    style={{
-                      fontWeight: 600,
-                      color: "#8892a8",
-                      fontSize: "0.68rem",
-                      textTransform: "uppercase",
-                      letterSpacing: "0.05em",
-                      fontFamily: "var(--font-mono)",
-                    }}
-                  >
-                    {h}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {patients.map((p) => {
-                const sc = statusConfig[p.status];
-                return (
-                  <tr
-                    key={p.id}
-                    className="border-t border-[#e2e6ef] hover:bg-[#fafbfc] transition-colors cursor-pointer"
-                    onClick={() => navigate(`/patients/${p.id}`)}
-                  >
-                    {/* Name */}
-                    <td className="px-5 py-4">
-                      <span style={{ fontWeight: 600, color: "#1a1d2e" }}>
-                        {p.name}
-                      </span>
-                    </td>
+        {/* Table Container */}
+        <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-slate-50 border-b border-slate-200">
+                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Patient</th>
+                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Demographics</th>
+                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Active Service</th>
+                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Status</th>
+                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Medication / Plan</th>
+                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {mockPatients.map(p => {
 
-                    {/* Age */}
-                    <td
-                      className="px-5 py-4"
-                      style={{ fontFamily: "var(--font-mono)", color: "#1a1d2e" }}
+                  let badgeColors = 'bg-slate-100 text-slate-700';
+                  if (p.flag === 'red') badgeColors = 'bg-red-100 text-red-700';
+                  else if (p.flag === 'purple') badgeColors = 'bg-purple-100 text-purple-700';
+                  else if (p.flag === 'yellow') badgeColors = 'bg-amber-100 text-amber-700';
+                  else if (p.flag === 'green') badgeColors = 'bg-emerald-100 text-emerald-700';
+
+                  return (
+                    <tr
+                      key={p.id}
+                      onClick={() => handleViewPatient(p.id)}
+                      className="hover:bg-slate-50 transition-colors cursor-pointer group"
                     >
-                      {p.age}
-                    </td>
-
-                    {/* Service */}
-                    <td className="px-5 py-4" style={{ color: "#1a1d2e" }}>
-                      {p.service}
-                    </td>
-
-                    {/* Status */}
-                    <td className="px-5 py-4">
-                      <span
-                        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full"
-                        style={{
-                          backgroundColor: sc.bg,
-                          color: sc.text,
-                          fontSize: "0.72rem",
-                          fontWeight: 600,
-                        }}
-                      >
-                        {sc.emoji} {p.status}
-                      </span>
-                    </td>
-
-                    {/* Medication */}
-                    <td className="px-5 py-4" style={{ color: "#1a1d2e" }}>
-                      {p.medication}
-                    </td>
-
-                    {/* Next Refill */}
-                    <td
-                      className="px-5 py-4"
-                      style={{
-                        color: p.refillOverdue ? "#dc2626" : "#1a1d2e",
-                        fontWeight: p.refillOverdue ? 600 : 400,
-                      }}
-                    >
-                      {p.nextRefill}
-                    </td>
-
-                    {/* Actions */}
-                    <td className="px-5 py-4">
-                      <div
-                        className="flex items-center gap-1.5"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <ActionBtn
-                          icon={MessageSquare}
-                          tooltip="Message"
-                          onClick={() => navigate("/messages")}
-                        />
-                        <ActionBtn
-                          icon={Eye}
-                          tooltip="View Case"
-                          onClick={() => navigate(`/patients/${p.id}`)}
-                        />
-                        <ActionBtn icon={FileText} tooltip="Export Summary" />
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-3">
+                          <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-white shrink-0 ${p.flag === 'red' ? 'bg-red-500' :
+                            p.flag === 'purple' ? 'bg-purple-500' :
+                              p.flag === 'yellow' ? 'bg-amber-500' : 'bg-emerald-500'
+                            }`}>
+                            {getInitials(p.name)}
+                          </div>
+                          <div>
+                            <div className="font-bold text-slate-900 group-hover:text-blue-600 transition-colors">{p.name}</div>
+                            <div className="text-xs text-slate-500 font-mono mt-0.5">CASE-{p.id.split('-')[1]}</div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="text-sm font-medium text-slate-900">{p.age} yrs</div>
+                        <div className="text-xs text-slate-500 mt-0.5">{p.gender}</div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="inline-flex px-2.5 py-1 rounded-md bg-slate-100 text-slate-600 text-xs font-bold uppercase tracking-wider">
+                          {p.service}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-bold ${badgeColors} whitespace-nowrap`}>
+                          {p.status}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="text-sm font-medium text-slate-900">{p.currentMedication}</div>
+                        <div className="text-xs text-slate-500 mt-0.5">{p.planName}</div>
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          <button
+                            className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                            onClick={(e) => { e.stopPropagation(); handleViewPatient(p.id); }}
+                            title="View Patient"
+                          >
+                            <Eye className="w-4 h-4" />
+                          </button>
+                          <button
+                            className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                            onClick={(e) => { e.stopPropagation(); navigate(`/messages`); }}
+                            title="Message Patient"
+                          >
+                            <MessageSquare className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>

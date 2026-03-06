@@ -1,1146 +1,747 @@
 import { useState } from "react";
-import { Link, useParams, useNavigate } from "react-router";
-import { ArrowLeft, Ban, X } from "lucide-react";
-import { toast } from "sonner";
-import { getCaseById, flagConfig, type CaseData } from "../data/mockData";
+import { Link } from "react-router";
+import { ArrowLeft, CheckCircle2, AlertCircle, Maximize2, X, Plus, Camera } from "lucide-react";
+import { usePersona } from "../../PersonaContext";
 
-/* ═══════════════════════════════════════════
-   SHARED
-   ═══════════════════════════════════════════ */
+// ════════════════════════════════════════
+// SHARED
+// ════════════════════════════════════════
 
-const cardStyle: React.CSSProperties = {
-  background: "#fff",
-  border: "1px solid #e2e6ef",
-  borderRadius: 14,
-  boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
-};
+const cardClass = "bg-white border border-slate-200 rounded-2xl shadow-sm p-6";
 
-/* ═══════════════════════════════════════════
-   PATIENT HEADER
-   ═══════════════════════════════════════════ */
-
-function PatientHeader({ caseData, setShowExportModal }: { caseData: CaseData, setShowExportModal: (v: boolean) => void }) {
-  const cfg = flagConfig[caseData.flag];
-  const navigate = useNavigate();
-
-  return (
-    <div
-      className="bg-white border-b border-[#e2e6ef] px-8 py-5"
-      style={{ fontFamily: "var(--font-sans)" }}
-    >
-      <Link
-        to="/cases"
-        className="inline-flex items-center gap-1.5 mb-4 text-[#2563eb] hover:underline"
-        style={{ fontSize: "0.82rem", fontWeight: 500 }}
-      >
-        <ArrowLeft className="w-4 h-4" />
-        Back to Cases
-      </Link>
-
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <div
-            className="w-11 h-11 rounded-full flex items-center justify-center text-white shrink-0"
-            style={{
-              backgroundColor: cfg.color,
-              fontSize: "0.8rem",
-              fontWeight: 600,
-            }}
-          >
-            {caseData.initials}
-          </div>
-          <div>
-            <div className="flex items-center gap-2.5">
-              <span style={{ fontSize: "1.1rem", fontWeight: 700, color: "#1a1d2e" }}>
-                {caseData.patientName}
-              </span>
-              <span
-                className="px-2 py-0.5 rounded-full"
-                style={{
-                  backgroundColor: cfg.badgeBg,
-                  color: cfg.color,
-                  fontSize: "0.68rem",
-                  fontWeight: 700,
-                  fontFamily: "var(--font-mono)",
-                  letterSpacing: "0.03em",
-                }}
-              >
-                {cfg.badge}
-              </span>
-            </div>
-            <p style={{ fontSize: "0.78rem", color: "#8892a8", marginTop: 2 }}>
-              {caseData.email} · {caseData.age}y · {caseData.gender} · BMI{" "}
-              {caseData.bmi}
-            </p>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => navigate("/messages")}
-            className="flex items-center gap-1.5 px-4 py-2 rounded-xl border border-[#e2e6ef] bg-white text-[#1a1d2e] hover:bg-[#f3f4f8] transition-colors"
-            style={{ fontSize: "0.82rem", fontWeight: 500 }}
-          >
-            💬 Message
-          </button>
-          <button
-            onClick={() => setShowExportModal(true)}
-            className="flex items-center gap-1.5 px-4 py-2 rounded-xl border border-[#e2e6ef] bg-white text-[#1a1d2e] hover:bg-[#f3f4f8] transition-colors"
-            style={{ fontSize: "0.82rem", fontWeight: 500 }}
-          >
-            📄 Export
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* ═══════════════════════════════════════════
-   HARD STOP BANNER (RED only)
-   ═══════════════════════════════════════════ */
-
-function HardStopBanner({ caseData }: { caseData: CaseData }) {
-  if (caseData.flag !== "red") return null;
-
-  return (
-    <div
-      className="mx-8 mt-6 flex items-start gap-3 px-5 py-4"
-      style={{
-        backgroundColor: "#fef2f2",
-        border: "1px solid #fecaca",
-        borderRadius: 12,
-      }}
-    >
-      <Ban className="w-5 h-5 shrink-0 mt-0.5" style={{ color: "#dc2626" }} />
-      <p style={{ fontSize: "0.84rem", fontWeight: 600, color: "#dc2626", lineHeight: 1.5 }}>
-        HARD STOP: Patient takes Isosorbide Mononitrate (nitrate). PDE5
-        inhibitors contraindicated. Prescribing is blocked.
-      </p>
-    </div>
-  );
-}
-
-/* ═══════════════════════════════════════════
-   LEFT COLUMN CARDS
-   ═══════════════════════════════════════════ */
-
-function DemographicsGrid({ caseData }: { caseData: CaseData }) {
-  const items = [
-    { label: "Age", value: `${caseData.age}y` },
-    { label: "BMI", value: String(caseData.bmi) },
-    { label: "Location", value: caseData.location },
-    { label: "Service", value: caseData.type },
-  ];
-  return (
-    <div style={cardStyle} className="p-5">
-      <div className="grid grid-cols-4 gap-4">
-        {items.map((item) => (
-          <div
-            key={item.label}
-            className="flex flex-col items-center py-3 rounded-xl bg-[#f8f9fb]"
-          >
-            <span
-              style={{
-                fontSize: "1.15rem",
-                fontWeight: 700,
-                color: "#1a1d2e",
-                fontFamily: "var(--font-mono)",
-              }}
-            >
-              {item.value}
-            </span>
-            <span
-              style={{
-                fontSize: "0.72rem",
-                color: "#8892a8",
-                marginTop: 2,
-                fontWeight: 500,
-              }}
-            >
-              {item.label}
-            </span>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function FlagsAlerts({ caseData }: { caseData: CaseData }) {
-  const levelConfig = {
-    red: { bg: "#fef2f2", border: "#fecaca", color: "#dc2626", emoji: "🔴" },
-    yellow: { bg: "#fffbeb", border: "#fde68a", color: "#d97706", emoji: "🟡" },
-    green: { bg: "#f0fdf4", border: "#bbf7d0", color: "#16a34a", emoji: "🟢" },
+function FlagBadge({ flag }: { flag: string }) {
+  const flagMap: Record<string, { bg: string; text: string; label: string }> = {
+    red: { bg: "bg-red-100", text: "text-red-700", label: "🔴 Urgent" },
+    purple: { bg: "bg-purple-100", text: "text-purple-700", label: "💜 Titration Due" },
+    yellow: { bg: "bg-amber-100", text: "text-amber-700", label: "🟡 Review" },
+    green: { bg: "bg-emerald-100", text: "text-emerald-700", label: "🟢 Standard" },
   };
-
+  const cfg = flagMap[flag] || flagMap.green;
   return (
-    <div style={cardStyle} className="p-5">
-      <h4
-        style={{
-          fontSize: "0.9rem",
-          fontWeight: 600,
-          color: "#1a1d2e",
-          marginBottom: 12,
-        }}
-      >
-        Flags &amp; Alerts
-      </h4>
-      <div className="flex flex-col gap-2.5">
-        {caseData.flags.map((flag, i) => {
-          const lc = levelConfig[flag.level];
-          return (
-            <div
-              key={i}
-              className="flex items-center gap-2.5 px-4 py-3 rounded-xl"
-              style={{ backgroundColor: lc.bg, border: `1px solid ${lc.border}` }}
-            >
-              <span style={{ fontSize: "0.82rem" }}>{lc.emoji}</span>
-              <span style={{ fontSize: "0.82rem", fontWeight: 600, color: lc.color }}>
-                {flag.text}
-              </span>
-            </div>
-          );
-        })}
-      </div>
-    </div>
+    <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${cfg.bg} ${cfg.text}`}>
+      {cfg.label}
+    </span>
   );
 }
 
-function AIIntakeSummary({ caseData }: { caseData: CaseData }) {
-  return (
-    <div style={cardStyle} className="p-5">
-      <h4
-        style={{
-          fontSize: "0.9rem",
-          fontWeight: 600,
-          color: "#1a1d2e",
-          marginBottom: 12,
-        }}
-      >
-        AI Intake Summary
-      </h4>
-      <div
-        className="px-4 py-3.5 rounded-xl"
-        style={{ backgroundColor: "#f0fdf4", border: "1px solid #bbf7d0" }}
-      >
-        <span
-          className="inline-block px-2 py-0.5 rounded-full mb-2"
-          style={{
-            backgroundColor: "#16a34a",
-            color: "#fff",
-            fontSize: "0.62rem",
-            fontWeight: 700,
-            fontFamily: "var(--font-mono)",
-            letterSpacing: "0.05em",
-          }}
-        >
-          AI GENERATED
-        </span>
-        <p style={{ fontSize: "0.82rem", color: "#1a1d2e", lineHeight: 1.6 }}>
-          {caseData.aiSummary}
-        </p>
-      </div>
-    </div>
-  );
-}
+// ════════════════════════════════════════
+// 1. WEIGHT LOSS
+// ════════════════════════════════════════
 
-function QuestionnaireResponses({ caseData }: { caseData: CaseData }) {
-  return (
-    <div style={cardStyle} className="p-5">
-      <h4
-        style={{
-          fontSize: "0.9rem",
-          fontWeight: 600,
-          color: "#1a1d2e",
-          marginBottom: 12,
-        }}
-      >
-        Questionnaire Responses
-      </h4>
-      <div className="flex flex-col gap-0">
-        {caseData.questionnaire.map((item, i) => (
-          <div
-            key={i}
-            className={`flex flex-col gap-1 py-3 ${i < caseData.questionnaire.length - 1
-              ? "border-b border-[#e2e6ef]"
-              : ""
-              }`}
-          >
-            <span style={{ fontSize: "0.78rem", color: "#8892a8", fontWeight: 500 }}>
-              {item.q}
-            </span>
-            <span style={{ fontSize: "0.84rem", color: "#1a1d2e" }}>
-              {item.a}
-            </span>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function CurrentMedications({ caseData }: { caseData: CaseData }) {
-  if (caseData.meds.length === 0) return null;
+function WeightLossReview({ patient }: { patient: any }) {
+  const log = patient.trackingData?.weightLog || [];
+  const titration = patient.trackingData?.titrationTimeline || {};
 
   return (
-    <div style={cardStyle} className="overflow-hidden">
-      <div className="px-5 pt-5 pb-3">
-        <h4 style={{ fontSize: "0.9rem", fontWeight: 600, color: "#1a1d2e" }}>
-          Current Medications
-        </h4>
-      </div>
-      <table className="w-full" style={{ fontSize: "0.82rem" }}>
-        <thead>
-          <tr style={{ backgroundColor: "#f8f9fb" }}>
-            <th
-              className="text-left px-5 py-2.5"
-              style={{ fontWeight: 600, color: "#8892a8", fontSize: "0.72rem" }}
-            >
-              Medication
-            </th>
-            <th
-              className="text-left px-5 py-2.5"
-              style={{ fontWeight: 600, color: "#8892a8", fontSize: "0.72rem" }}
-            >
-              Condition
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          {caseData.meds.map((med) => (
-            <tr
-              key={med.name}
-              className="border-t border-[#e2e6ef]"
-              style={med.flagged ? { backgroundColor: "#fef2f2" } : undefined}
-            >
-              <td
-                className="px-5 py-3"
-                style={{
-                  fontWeight: med.flagged ? 600 : 400,
-                  color: med.flagged ? "#dc2626" : "#1a1d2e",
-                }}
-              >
-                {med.name}
-              </td>
-              <td
-                className="px-5 py-3"
-                style={{ color: med.flagged ? "#dc2626" : "#8892a8" }}
-              >
-                {med.reason}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
-}
-
-function AITreatmentSuggestion({ caseData }: { caseData: CaseData }) {
-  return (
-    <div style={cardStyle} className="p-5">
-      <div className="flex items-center gap-2.5 mb-3">
-        <h4 style={{ fontSize: "0.9rem", fontWeight: 600, color: "#1a1d2e" }}>
-          AI Treatment Suggestion
-        </h4>
-        <span
-          className="px-2 py-0.5 rounded-full"
-          style={{
-            backgroundColor: "rgba(22,163,74,0.12)",
-            color: "#16a34a",
-            fontSize: "0.65rem",
-            fontWeight: 700,
-            fontFamily: "var(--font-mono)",
-            letterSpacing: "0.03em",
-          }}
-        >
-          AI CONFIDENCE: 94%
-        </span>
-      </div>
-      <div
-        className="px-4 py-3.5 rounded-xl"
-        style={{ backgroundColor: "#f0fdf4", border: "1px solid #bbf7d0" }}
-      >
-        <p style={{ fontSize: "0.82rem", color: "#1a1d2e", lineHeight: 1.6 }}>
-          {caseData.aiSuggestion}
-        </p>
-      </div>
-    </div>
-  );
-}
-
-/* ═══════════════════════════════════════════
-   WARNING MODAL (Yellow case only)
-   ═══════════════════════════════════════════ */
-
-function WarningModal({
-  onConfirm,
-  onClose,
-}: {
-  onConfirm: () => void;
-  onClose: () => void;
-}) {
-  const [checked, setChecked] = useState(false);
-
-  return (
-    <div
-      className="fixed inset-0 z-[100] flex items-center justify-center"
-      style={{ backgroundColor: "rgba(0,0,0,0.4)", backdropFilter: "blur(4px)" }}
-    >
-      <div
-        className="relative w-full max-w-md mx-4"
-        style={{
-          ...cardStyle,
-          borderColor: "#fde68a",
-          padding: 0,
-          boxShadow: "0 20px 60px rgba(0,0,0,0.2)",
-        }}
-      >
-        {/* Header */}
-        <div
-          className="flex items-center justify-between px-6 py-4"
-          style={{
-            backgroundColor: "#fffbeb",
-            borderBottom: "1px solid #fde68a",
-            borderRadius: "14px 14px 0 0",
-          }}
-        >
-          <h3 style={{ fontSize: "1rem", fontWeight: 700, color: "#d97706" }}>
-            ⚠️ Warning — Confirm Prescription
-          </h3>
-          <button
-            onClick={onClose}
-            className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-white/60 text-[#d97706] transition-colors"
-          >
-            <X className="w-4 h-4" />
-          </button>
-        </div>
-
-        {/* Body */}
-        <div className="px-6 py-5">
-          <p style={{ fontSize: "0.88rem", color: "#1a1d2e", lineHeight: 1.6, marginBottom: 16 }}>
-            Warning: You are prescribing despite elevated risk factors (borderline BMI). Please
-            confirm you have reviewed the patient's history and accept clinical responsibility.
-          </p>
-
-          <label className="flex items-start gap-3 cursor-pointer group">
-            <button
-              onClick={() => setChecked((v) => !v)}
-              className="w-5 h-5 rounded flex items-center justify-center shrink-0 mt-0.5 transition-colors"
-              style={{
-                backgroundColor: checked ? "#16a34a" : "transparent",
-                border: checked ? "none" : "2px solid #c4c9d4",
-                borderRadius: 5,
-              }}
-            >
-              {checked && (
-                <svg width="12" height="10" viewBox="0 0 12 10" fill="none">
-                  <path
-                    d="M1 5L4.5 8.5L11 1"
-                    stroke="#fff"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              )}
-            </button>
-            <span
-              style={{ fontSize: "0.84rem", color: "#1a1d2e", lineHeight: 1.5 }}
-            >
-              I confirm I have reviewed the patient history, understand the
-              elevated risks, and accept clinical responsibility for this
-              prescription.
-            </span>
-          </label>
-        </div>
-
-        {/* Actions */}
-        <div
-          className="flex items-center justify-end gap-2.5 px-6 py-4"
-          style={{ borderTop: "1px solid #e2e6ef" }}
-        >
-          <button
-            onClick={onClose}
-            className="px-5 py-2.5 rounded-xl border border-[#e2e6ef] bg-white text-[#1a1d2e] hover:bg-[#f3f4f8] transition-colors"
-            style={{ fontSize: "0.84rem", fontWeight: 500 }}
-          >
-            Cancel
-          </button>
-          <button
-            onClick={onConfirm}
-            disabled={!checked}
-            className="px-5 py-2.5 rounded-xl text-white transition-all"
-            style={{
-              backgroundColor: checked ? "#16a34a" : "#c4c9d4",
-              fontSize: "0.84rem",
-              fontWeight: 600,
-              cursor: checked ? "pointer" : "not-allowed",
-              opacity: checked ? 1 : 0.7,
-            }}
-          >
-            Confirm Approval
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* ═══════════════════════════════════════════
-   RIGHT COLUMN — CLINICAL DECISION
-   ═══════════════════════════════════════════ */
-
-function ClinicalDecisionPanel({ caseData }: { caseData: CaseData }) {
-  const navigate = useNavigate();
-  const [selectedMed, setSelectedMed] = useState("semaglutide");
-  const [addOns, setAddOns] = useState<Record<string, boolean>>({
-    metformin: false,
-    b12: false,
-    bupropion: false,
-  });
-  const [showWarningModal, setShowWarningModal] = useState(false);
-
-  interface MedOption { id: string; label: string; price: number; star?: boolean }
-  let baseMeds: MedOption[] = [];
-  let addOnItems: MedOption[] = [];
-
-  switch (caseData.type) {
-    case "Weight Loss":
-      baseMeds = [
-        { id: "oral", label: "Oral Weight Loss Kit", price: 299 },
-        { id: "semaglutide", label: "Generic Semaglutide 0.25mg", price: 549, star: true },
-        { id: "ozempic", label: "Ozempic 0.25mg", price: 599 },
-        { id: "mounjaro", label: "Mounjaro 2.5mg", price: 799 },
-      ];
-      addOnItems = [
-        { id: "metformin", label: "Metformin 500mg", price: 49 },
-        { id: "b12", label: "Vitamin B12", price: 29 },
-        { id: "bupropion", label: "Bupropion XL 150mg", price: 79 },
-      ];
-      break;
-    case "Sexual Health":
-    case "ED":
-      baseMeds = [
-        { id: "sildenafil", label: "Sildenafil 50mg", price: 199, star: true },
-        { id: "tadalafil", label: "Tadalafil 10mg", price: 249 },
-      ];
-      addOnItems = [
-        { id: "delay_spray", label: "Delay Spray", price: 45 },
-        { id: "performance_gummies", label: "Performance Gummies", price: 60 },
-      ];
-      break;
-    case "Relieve Menopause":
-    case "Ease Menopause":
-      baseMeds = [
-        { id: "estradiol", label: "Estradiol Patch 0.05mg", price: 189, star: true },
-        { id: "progesterone", label: "Progesterone 100mg", price: 149 },
-      ];
-      addOnItems = [
-        { id: "vaginal_cream", label: "Vaginal Estradiol Cream", price: 89 },
-        { id: "bone_support", label: "Calcium + D3 Support", price: 35 },
-      ];
-      break;
-    case "Hair Regrowth":
-    case "Grow Fuller Hair":
-    case "Hair Loss":
-      baseMeds = [
-        { id: "finasteride_oral", label: "Finasteride 1mg (Oral)", price: 129 },
-        { id: "topical_combo", label: "Topical Finasteride + Minoxidil", price: 179, star: true },
-        { id: "minoxidil_only", label: "Topical Minoxidil 5%", price: 89 },
-      ];
-      addOnItems = [
-        { id: "biotin", label: "Biotin Gummies", price: 39 },
-        { id: "thickening_shampoo", label: "Thickening Shampoo", price: 45 },
-      ];
-      break;
-    case "Reduce Anxiety":
-    case "Mental Health":
-      baseMeds = [
-        { id: "sertraline", label: "Sertraline 50mg", price: 149, star: true },
-        { id: "escitalopram", label: "Escitalopram 10mg", price: 159 },
-      ];
-      addOnItems = [
-        { id: "sleep_aid", label: "Melatonin Sleep Aid", price: 25 },
-        { id: "therapy_session", label: "Add Therapy Session", price: 199 },
-      ];
-      break;
-    case "Testosterone":
-      baseMeds = [
-        { id: "trt_cream", label: "Testosterone Cream 5%", price: 299 },
-        { id: "trt_injections", label: "Testosterone Cypionate", price: 349, star: true },
-      ];
-      addOnItems = [
-        { id: "hcg", label: "HCG", price: 150 },
-        { id: "anastrozole", label: "Anastrozole 1mg", price: 50 },
-      ];
-      break;
-    default:
-      baseMeds = [
-        { id: "consultation", label: "General Consultation Only", price: 99, star: true },
-      ];
-      addOnItems = [];
-      break;
-  }
-
-  const toggleAddOn = (id: string) =>
-    setAddOns((prev) => ({ ...prev, [id]: !prev[id] }));
-
-  const selectedBaseMed = baseMeds.find((m) => m.id === selectedMed);
-  const basePrice = selectedBaseMed?.price ?? 0;
-  const addOnTotal = addOnItems.reduce(
-    (sum, a) => sum + (addOns[a.id] ? a.price : 0),
-    0
-  );
-  const total = basePrice + addOnTotal;
-
-  const isRed = caseData.flag === "red";
-  const isYellow = caseData.flag === "yellow";
-  const isGreen = caseData.flag === "green";
-  const isPurple = caseData.flag === "purple";
-
-  const handleApprove = () => {
-    if (isRed) return; // blocked
-
-    if (isYellow) {
-      setShowWarningModal(true);
-      return;
-    }
-
-    // Green or Purple — direct approve
-    toast.success("Prescription sent to pharmacy", {
-      description: `Treatment plan for ${caseData.patientName} has been submitted.`,
-    });
-    setTimeout(() => navigate("/cases"), 600);
-  };
-
-  const handleWarningConfirm = () => {
-    setShowWarningModal(false);
-    toast.success("Prescription approved with warning", {
-      description: `Treatment plan for ${caseData.patientName} approved despite elevated risks.`,
-    });
-    setTimeout(() => navigate("/cases"), 600);
-  };
-
-  const handleDecline = () => {
-    toast.error("Case Declined. Refund Initiated.", {
-      description: `Case ${caseData.caseId} has been declined and payment refund started.`,
-    });
-    setTimeout(() => navigate("/cases"), 600);
-  };
-
-  const steps = isPurple
-    ? [
-      { num: "1", dose: "0.25mg", active: true },
-      { num: "2", dose: "0.5mg", active: true },
-      { num: "3", dose: "1.0mg", active: false },
-      { num: "M", dose: "Maintain", active: false },
-    ]
-    : [
-      { num: "1", dose: "0.25mg", active: true },
-      { num: "2", dose: "0.5mg", active: false },
-      { num: "3", dose: "1.0mg", active: false },
-      { num: "M", dose: "Maintain", active: false },
-    ];
-
-  return (
-    <>
-      <div
-        style={{
-          ...cardStyle,
-          position: "sticky",
-          top: 24,
-        }}
-        className="p-5 flex flex-col gap-5"
-      >
-        <h3 style={{ fontSize: "1rem", fontWeight: 700, color: "#1a1d2e" }}>
-          🩺 Clinical Decision
-        </h3>
-
-        {/* Provider Notes */}
-        <div>
-          <label
-            style={{
-              fontSize: "0.78rem",
-              fontWeight: 600,
-              color: "#1a1d2e",
-              display: "block",
-              marginBottom: 6,
-            }}
-          >
-            Provider Notes
-          </label>
-          <textarea
-            className="w-full px-4 py-3 rounded-xl border border-[#e2e6ef] bg-[#f8f9fb] text-[#1a1d2e] placeholder-[#8892a8] resize-none outline-none focus:border-[#2563eb] transition-colors"
-            rows={3}
-            placeholder="Add your clinical notes here..."
-            style={{ fontSize: "0.82rem", lineHeight: 1.5 }}
-          />
-        </div>
-
-        {/* Treatment Plan Builder */}
-        <div>
-          <label
-            style={{
-              fontSize: "0.78rem",
-              fontWeight: 600,
-              color: "#1a1d2e",
-              display: "block",
-              marginBottom: 8,
-            }}
-          >
-            Base Medication
-          </label>
-          <div className="flex flex-col gap-2">
-            {baseMeds.map((med) => {
-              const isSelected = selectedMed === med.id;
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="lg:col-span-2 flex flex-col gap-6">
+        <div className={cardClass}>
+          <h3 className="text-lg font-bold text-slate-900 mb-6">Weight Progress</h3>
+          <div className="h-48 flex items-end gap-4 justify-between pt-4 border-b border-l border-slate-200 pl-4 pb-2 relative">
+            <div className="absolute top-0 left-2 text-xs text-slate-400 font-mono">110kg</div>
+            <div className="absolute bottom-2 left-2 text-xs text-slate-400 font-mono">80kg</div>
+            {log.map((entry: any, i: number) => {
+              const heightPct = Math.max(10, Math.min(100, ((entry.weight - 80) / 30) * 100));
               return (
-                <button
-                  key={med.id}
-                  onClick={() => setSelectedMed(med.id)}
-                  className="flex items-center gap-3 px-4 py-3 rounded-xl border transition-all text-left"
-                  style={{
-                    backgroundColor: isSelected ? "#ecfdf5" : "#fff",
-                    borderColor: isSelected ? "#86efac" : "#e2e6ef",
-                  }}
-                >
-                  <div
-                    className="w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0"
-                    style={{
-                      borderColor: isSelected ? "#16a34a" : "#c4c9d4",
-                    }}
-                  >
-                    {isSelected && (
-                      <div
-                        className="w-2 h-2 rounded-full"
-                        style={{ backgroundColor: "#16a34a" }}
-                      />
-                    )}
+                <div key={i} className="flex flex-col items-center flex-1 gap-2">
+                  <div className="w-full max-w-[40px] bg-blue-100 rounded-t-md relative flex justify-center hover:bg-blue-200 transition-colors" style={{ height: `${heightPct}%` }}>
+                    <span className="absolute -top-6 text-xs font-bold text-blue-700">{entry.weight}kg</span>
                   </div>
-                  <span
-                    className="flex-1"
-                    style={{
-                      fontSize: "0.82rem",
-                      fontWeight: 500,
-                      color: "#1a1d2e",
-                    }}
-                  >
-                    {med.label}
-                    {med.star && <span className="ml-1">⭐</span>}
-                  </span>
-                  <span
-                    style={{
-                      fontSize: "0.78rem",
-                      fontWeight: 600,
-                      color: isSelected ? "#16a34a" : "#8892a8",
-                      fontFamily: "var(--font-mono)",
-                    }}
-                  >
-                    {med.price} SAR/mo
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Add-Ons */}
-        <div>
-          <label
-            style={{
-              fontSize: "0.78rem",
-              fontWeight: 600,
-              color: "#1a1d2e",
-              display: "block",
-              marginBottom: 8,
-            }}
-          >
-            Add-Ons
-          </label>
-          <div className="flex flex-col gap-2">
-            {addOnItems.map((addon) => {
-              const checked = addOns[addon.id];
-              return (
-                <button
-                  key={addon.id}
-                  onClick={() => toggleAddOn(addon.id)}
-                  className="flex items-center gap-3 px-4 py-3 rounded-xl border transition-all text-left"
-                  style={{
-                    backgroundColor: checked ? "#ecfdf5" : "#fff",
-                    borderColor: checked ? "#86efac" : "#e2e6ef",
-                  }}
-                >
-                  <div
-                    className="w-4 h-4 rounded flex items-center justify-center shrink-0"
-                    style={{
-                      backgroundColor: checked ? "#16a34a" : "transparent",
-                      border: checked ? "none" : "2px solid #c4c9d4",
-                      borderRadius: 4,
-                    }}
-                  >
-                    {checked && (
-                      <svg width="10" height="8" viewBox="0 0 10 8" fill="none">
-                        <path
-                          d="M1 4L3.5 6.5L9 1"
-                          stroke="#fff"
-                          strokeWidth="1.8"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                    )}
-                  </div>
-                  <span
-                    className="flex-1"
-                    style={{
-                      fontSize: "0.82rem",
-                      fontWeight: 500,
-                      color: "#1a1d2e",
-                    }}
-                  >
-                    {addon.label}
-                  </span>
-                  <span
-                    style={{
-                      fontSize: "0.78rem",
-                      fontWeight: 600,
-                      color: checked ? "#16a34a" : "#8892a8",
-                      fontFamily: "var(--font-mono)",
-                    }}
-                  >
-                    +{addon.price} SAR
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Titration Schedule */}
-        <div>
-          <label
-            style={{
-              fontSize: "0.78rem",
-              fontWeight: 600,
-              color: "#1a1d2e",
-              display: "block",
-              marginBottom: 10,
-            }}
-          >
-            Titration Schedule
-          </label>
-          <div className="flex items-center gap-0">
-            {steps.map((step, i) => (
-              <div key={step.num} className="flex items-center">
-                <div className="flex flex-col items-center gap-1.5">
-                  <div
-                    className="w-9 h-9 rounded-full flex items-center justify-center"
-                    style={{
-                      backgroundColor: step.active ? "#16a34a" : "#f3f4f8",
-                      color: step.active ? "#fff" : "#8892a8",
-                      fontSize: "0.75rem",
-                      fontWeight: 700,
-                      fontFamily: "var(--font-mono)",
-                      border: step.active ? "none" : "1.5px solid #e2e6ef",
-                    }}
-                  >
-                    {step.num}
-                  </div>
-                  <span
-                    style={{
-                      fontSize: "0.62rem",
-                      color: "#8892a8",
-                      fontWeight: 500,
-                    }}
-                  >
-                    {step.dose}
-                  </span>
+                  <span className="text-xs text-slate-500 font-medium">{entry.date.split("-").slice(1).join("/")}</span>
                 </div>
-                {i < steps.length - 1 && (
-                  <div
-                    className="mx-1"
-                    style={{
-                      width: 28,
-                      height: 2,
-                      backgroundColor: step.active ? "#16a34a" : "#e2e6ef",
-                      marginBottom: 18,
-                    }}
-                  />
-                )}
+              );
+            })}
+          </div>
+        </div>
+        <div className={cardClass}>
+          <h3 className="text-lg font-bold text-slate-900 mb-6">Dose Titration Timeline</h3>
+          <div className="flex items-center justify-between relative">
+            <div className="absolute left-0 top-1/2 -translate-y-1/2 w-full h-1 bg-slate-100 rounded z-0" />
+            {Object.entries(titration).map(([dose, status], i) => {
+              const st = status as string;
+              const isDone = st === "Completed";
+              const isCurrent = st === "Current";
+              return (
+                <div key={dose} className="relative z-10 flex flex-col items-center gap-2">
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 font-bold text-xs ${isDone ? "bg-emerald-500 border-emerald-500 text-white" : isCurrent ? "bg-white border-purple-500 text-purple-600" : "bg-white border-slate-200 text-slate-400"}`}>
+                    {isDone ? <CheckCircle2 className="w-4 h-4" /> : i + 1}
+                  </div>
+                  <div className="text-center">
+                    <div className={`text-sm font-bold ${isCurrent ? "text-purple-700" : "text-slate-700"}`}>{dose}</div>
+                    <div className="text-xs text-slate-500 font-medium">{st}</div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+      <div className="flex flex-col gap-6">
+        <div className="bg-purple-50 border border-purple-200 rounded-2xl shadow-sm p-6 sticky top-24">
+          <div className="flex items-center gap-2 mb-4">
+            <AlertCircle className="w-5 h-5 text-purple-600" />
+            <h3 className="text-lg font-bold text-purple-900">Titration Decision</h3>
+          </div>
+          <p className="text-sm text-purple-700 mb-6 font-medium leading-relaxed">Patient has completed 4 weeks at current dose. Side effects reported as minimal. Ready for next step?</p>
+          <div className="bg-white rounded-xl p-4 border border-purple-100 mb-6 flex justify-between items-center">
+            <div>
+              <div className="text-xs text-slate-500 uppercase font-bold tracking-wider mb-1">Current</div>
+              <div className="font-bold text-slate-900">0.25mg Weekly</div>
+            </div>
+            <ArrowLeft className="w-4 h-4 text-purple-300 rotate-180 shrink-0" />
+            <div className="text-right">
+              <div className="text-xs text-purple-500 uppercase font-bold tracking-wider mb-1">Proposed</div>
+              <div className="font-bold text-purple-700">0.5mg Weekly</div>
+            </div>
+          </div>
+          <div className="flex flex-col gap-3">
+            <button className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-sm transition-colors shadow-sm flex items-center justify-center gap-2">
+              <CheckCircle2 className="w-4 h-4" /> Approve Increase to 0.5mg
+            </button>
+            <button className="w-full py-3 bg-white border-2 border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl font-bold text-sm transition-colors">⏸ Maintain 0.25mg</button>
+            <button className="w-full py-3 bg-blue-50 text-blue-700 hover:bg-blue-100 rounded-xl font-bold text-sm transition-colors mt-2">💬 Message Patient</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ════════════════════════════════════════
+// 2. TESTOSTERONE (TRT)
+// ════════════════════════════════════════
+
+function TestosteroneReview({ patient }: { patient: any }) {
+  const log = patient.trackingData?.trtLog || [];
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="lg:col-span-2 flex flex-col gap-6">
+        <div className={cardClass}>
+          <h3 className="text-lg font-bold text-slate-900 mb-6">Hormone vs. Symptoms Timeline</h3>
+          <div className="flex flex-col gap-6 relative">
+            <div className="flex justify-between items-end border-b-2 border-slate-100 pb-2 relative h-40">
+              <div className="absolute -left-2 top-0 bottom-0 w-full flex flex-col justify-between text-[10px] text-slate-400 font-mono"><span>800 ng/dL</span><span>200 ng/dL</span></div>
+              {log.map((entry: any, i: number) => {
+                const heightMap = Math.max(10, Math.min(100, ((entry.totalT - 200) / 600) * 100));
+                return (
+                  <div key={i} className="flex-1 flex flex-col items-center justify-end z-10 gap-2">
+                    <div className="w-12 bg-blue-500 rounded-t border-b-0 border border-blue-600 flex items-start justify-center pt-2 text-white text-xs font-bold shadow-sm" style={{ height: `${heightMap}%` }}>{entry.totalT}</div>
+                    <span className="text-xs font-bold text-slate-500">{entry.date.split("-").slice(1).join("/")}</span>
+                  </div>
+                );
+              })}
+            </div>
+            <div className="flex justify-between items-center absolute w-full top-1/2 -mt-4 px-12 pointer-events-none">
+              {log.map((entry: any, i: number) => (
+                <div key={"l" + i} className="w-6 h-6 rounded-full bg-orange-500 border-2 border-white shadow-md flex items-center justify-center text-[10px] text-white font-bold z-20" title={`Libido: ${entry.libidoScore}/10`} style={{ transform: `translateY(${-(entry.libidoScore - 5) * 10}px)` }}>{entry.libidoScore}</div>
+              ))}
+            </div>
+            <div className="flex justify-center gap-6 mt-2">
+              <div className="flex items-center gap-2 text-xs font-bold text-slate-600"><div className="w-3 h-3 rounded bg-blue-500"></div> Total T</div>
+              <div className="flex items-center gap-2 text-xs font-bold text-slate-600"><div className="w-3 h-3 rounded-full bg-orange-500"></div> Libido Score</div>
+            </div>
+          </div>
+        </div>
+        <div className={`${cardClass} bg-slate-50`}>
+          <h3 className="text-sm uppercase tracking-wider font-bold text-slate-500 mb-4">Recent Lab Work Summary</h3>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="bg-white p-4 rounded-xl border border-slate-200">
+              <div className="text-xs text-slate-500 font-medium mb-1">Total Testosterone</div>
+              <div className="text-2xl font-bold text-slate-900 tracking-tight">720 <span className="text-sm text-slate-400 font-normal">ng/dL</span></div>
+              <div className="text-xs text-emerald-600 font-bold mt-2 bg-emerald-50 inline-block px-2 py-0.5 rounded">Optimal</div>
+            </div>
+            <div className="bg-white p-4 rounded-xl border border-slate-200">
+              <div className="text-xs text-slate-500 font-medium mb-1">Free Testosterone</div>
+              <div className="text-2xl font-bold text-slate-900 tracking-tight">16.8 <span className="text-sm text-slate-400 font-normal">ng/dL</span></div>
+              <div className="text-xs text-emerald-600 font-bold mt-2 bg-emerald-50 inline-block px-2 py-0.5 rounded">Optimal</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div className="flex flex-col gap-6">
+        <div className="bg-white border border-slate-200 rounded-2xl shadow-sm p-6 sticky top-24">
+          <h3 className="text-lg font-bold text-slate-900 mb-1">TRT Dosage Builder</h3>
+          <p className="text-sm text-slate-500 mb-6">Modify injection protocol</p>
+          <div className="flex flex-col gap-5">
+            <div>
+              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Testosterone Cypionate</label>
+              <select className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold text-slate-900 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                <option>100mg / week</option><option>120mg / week</option><option>140mg / week</option><option>160mg / week</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-3">Add-Ons</label>
+              <label className="flex items-center gap-3 p-3 border border-slate-200 rounded-xl mb-2 cursor-pointer hover:bg-slate-50 transition-colors">
+                <input type="checkbox" className="w-4 h-4 text-blue-600 rounded" />
+                <div><div className="text-sm font-bold text-slate-900">Anastrozole 1mg</div><div className="text-xs text-slate-500">Aromatase inhibitor</div></div>
+              </label>
+              <label className="flex items-center gap-3 p-3 border border-slate-200 rounded-xl cursor-pointer hover:bg-slate-50 transition-colors">
+                <input type="checkbox" className="w-4 h-4 text-blue-600 rounded" />
+                <div><div className="text-sm font-bold text-slate-900">Clomiphene 25mg</div><div className="text-xs text-slate-500">Fertility preservation</div></div>
+              </label>
+            </div>
+            <div className="pt-4 border-t border-slate-100 mt-2">
+              <button className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-sm transition-colors shadow-sm flex items-center justify-center gap-2">
+                <CheckCircle2 className="w-4 h-4" /> Update TRT Protocol
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ════════════════════════════════════════
+// 3. MENOPAUSE (HRT)
+// ════════════════════════════════════════
+
+function MenopauseReview({ patient }: { patient: any }) {
+  const log = patient.trackingData?.symptomLog || [];
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="lg:col-span-2 flex flex-col gap-6">
+        <div className={cardClass}>
+          <h3 className="text-lg font-bold text-slate-900 mb-6">Symptom Tracker</h3>
+          <div className="flex flex-col gap-6 relative">
+            <div className="flex justify-between items-end border-b-2 border-slate-100 pb-2 relative h-48 pl-8">
+              <div className="absolute left-0 top-0 bottom-0 w-8 flex flex-col justify-between text-[10px] text-slate-400 font-mono py-2"><span>10/d</span><span>5/d</span><span>0/d</span></div>
+              {log.map((entry: any, i: number) => {
+                const heightMap = Math.max(5, (entry.hotFlashesPerDay / 10) * 100);
+                return (
+                  <div key={i} className="flex-1 flex flex-col items-center justify-end z-10 gap-2 h-full">
+                    <div className="w-10 bg-rose-100 rounded-t border border-rose-200 flex items-start justify-center pt-2 text-rose-700 text-xs font-bold" style={{ height: `${heightMap}%` }}>{entry.hotFlashesPerDay}</div>
+                    <span className="text-xs font-bold text-slate-500 whitespace-nowrap">{entry.date.split("-").slice(1).join("/")}</span>
+                  </div>
+                );
+              })}
+            </div>
+            <div className="flex justify-center gap-6 mt-2">
+              <div className="flex items-center gap-2 text-xs font-bold text-slate-600"><div className="w-3 h-3 rounded bg-rose-100 border border-rose-200"></div> Hot Flashes / Day</div>
+              <div className="flex items-center gap-2 text-xs font-bold text-slate-600"><div className="w-3 h-3 rounded-full bg-indigo-500"></div> Sleep Quality (1-10)</div>
+            </div>
+          </div>
+        </div>
+        <div className={`${cardClass} bg-rose-50 border-rose-100`}>
+          <h3 className="text-sm uppercase tracking-wider font-bold text-rose-800 mb-2">Medical History Flags</h3>
+          <p className="text-sm text-rose-700 font-medium mb-4">CRITICAL: Review before prescribing HRT</p>
+          <ul className="flex flex-col gap-2">
+            <li className="flex items-center gap-2 bg-white px-3 py-2 rounded-lg border border-rose-100 text-sm font-bold text-slate-700"><AlertCircle className="w-4 h-4 text-rose-500" /> No personal history of breast cancer</li>
+            <li className="flex items-center gap-2 bg-white px-3 py-2 rounded-lg border border-rose-100 text-sm font-bold text-slate-700"><AlertCircle className="w-4 h-4 text-emerald-500" /> No history of DVT / Blood Clots</li>
+          </ul>
+        </div>
+      </div>
+      <div className="flex flex-col gap-6">
+        <div className="bg-white border border-slate-200 rounded-2xl shadow-sm p-6 sticky top-24">
+          <h3 className="text-lg font-bold text-slate-900 mb-1">HRT Plan Builder</h3>
+          <p className="text-sm text-slate-500 mb-6">Configure hormonal therapy</p>
+          <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 mb-6 flex items-start gap-2">
+            <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+            <p className="text-xs font-bold text-amber-800 leading-relaxed">⚠️ Uterus intact: Progesterone mandatory with Estrogen therapy.</p>
+          </div>
+          <div className="flex flex-col gap-5">
+            <div>
+              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Estrogen Therapy (Systemic)</label>
+              <select className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold text-slate-900 outline-none focus:border-blue-500">
+                <option>Estradiol Patch 0.05mg (Twice weekly)</option><option>Estradiol Patch 0.1mg (Twice weekly)</option><option>Oral Estradiol 1mg (Daily)</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Progesterone Protection</label>
+              <select className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold text-slate-900 outline-none focus:border-blue-500">
+                <option>Micronized Progesterone 100mg (Daily)</option><option>Micronized Progesterone 200mg (Cyclic)</option><option>Medroxyprogesterone acetate 2.5mg</option>
+              </select>
+            </div>
+            <div className="pt-4 border-t border-slate-100 mt-2">
+              <button className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-sm transition-colors shadow-sm flex items-center justify-center gap-2">
+                <CheckCircle2 className="w-4 h-4" /> Prescribe HRT Plan
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ════════════════════════════════════════
+// 4. SKINCARE
+// ════════════════════════════════════════
+
+function SkincareReview({ patient }: { patient: any }) {
+  const [formulaType, setFormulaType] = useState("Acne");
+  const [strength, setStrength] = useState("Mild 0.025%");
+  const photos = patient.trackingData?.photoLog || [];
+
+  const formulaTypes = ["Acne", "Anti-Aging", "Melasma", "Rosacea"];
+  const strengths = ["Mild 0.025%", "Medium 0.05%", "Strong 0.1%"];
+  const ingredients = [
+    { name: "Tretinoin", pct: "0.025" },
+    { name: "Niacinamide", pct: "4" },
+    { name: "Clindamycin", pct: "1" },
+  ];
+
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      {/* LEFT */}
+      <div className="lg:col-span-2 flex flex-col gap-6">
+        {/* Patient Skin Info */}
+        <div className="grid grid-cols-3 gap-4">
+          {[
+            { label: "Concern", value: "Acne" },
+            { label: "Skin Type", value: "Oily" },
+            { label: "Allergies", value: "None" },
+          ].map((item) => (
+            <div key={item.label} className="bg-white border border-slate-200 rounded-2xl p-4 text-center">
+              <div className="text-xs text-slate-500 font-bold uppercase tracking-wider mb-1">{item.label}</div>
+              <div className="text-lg font-bold text-slate-900">{item.value}</div>
+            </div>
+          ))}
+        </div>
+
+        {/* Photos */}
+        <div className={cardClass}>
+          <h3 className="text-lg font-bold text-slate-900 mb-2">Patient Photos</h3>
+          <div className="bg-pink-50 border border-pink-200 rounded-xl p-3 mb-6 flex items-start gap-2">
+            <AlertCircle className="w-4 h-4 text-pink-600 shrink-0 mt-0.5" />
+            <p className="text-xs font-bold text-pink-800 leading-relaxed">⚠️ Photos are the entire clinical basis for skin cases. Enlarge before prescribing.</p>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            {(photos.length > 0 ? photos.slice(0, 2) : [{ type: "Front / Full Face" }, { type: "Close-Up" }]).map((p: any, i: number) => (
+              <div key={i} className="relative bg-slate-100 border-2 border-dashed border-slate-300 rounded-xl aspect-square flex flex-col items-center justify-center group hover:border-pink-400 transition-colors">
+                <Camera className="w-10 h-10 text-slate-400 mb-2" />
+                <span className="text-sm font-bold text-slate-600">{p.type || `Photo ${i + 1}`}</span>
+                {p.url && <span className="text-[10px] text-slate-400 mt-1 truncate max-w-[80%]">{p.url}</span>}
+                <button className="absolute top-3 right-3 bg-white/80 backdrop-blur rounded-lg p-1.5 shadow-sm border border-slate-200 text-slate-500 hover:text-pink-600 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <Maximize2 className="w-4 h-4" />
+                </button>
               </div>
             ))}
           </div>
         </div>
 
-        {/* Order Summary */}
-        <div>
-          <label
-            style={{
-              fontSize: "0.78rem",
-              fontWeight: 600,
-              color: "#1a1d2e",
-              display: "block",
-              marginBottom: 8,
-            }}
-          >
-            Order Summary
-          </label>
-          <div className="flex flex-col gap-2">
-            <div className="flex justify-between">
-              <span style={{ fontSize: "0.82rem", color: "#1a1d2e" }}>
-                {selectedBaseMed?.label ?? "—"}
-              </span>
-              <span
-                style={{
-                  fontSize: "0.82rem",
-                  fontFamily: "var(--font-mono)",
-                  color: "#1a1d2e",
-                }}
-              >
-                {basePrice}
-              </span>
-            </div>
-            {addOnItems
-              .filter((a) => addOns[a.id])
-              .map((a) => (
-                <div key={a.id} className="flex justify-between">
-                  <span style={{ fontSize: "0.82rem", color: "#1a1d2e" }}>
-                    {a.label}
-                  </span>
-                  <span
-                    style={{
-                      fontSize: "0.82rem",
-                      fontFamily: "var(--font-mono)",
-                      color: "#1a1d2e",
-                    }}
-                  >
-                    {a.price}
-                  </span>
+        {/* Side Effect Log */}
+        {patient.trackingData?.sideEffectLog && (
+          <div className="bg-amber-50 border border-amber-200 rounded-2xl shadow-sm p-6">
+            <h3 className="text-sm uppercase tracking-wider font-bold text-amber-800 mb-3">Side Effect Reports</h3>
+            {patient.trackingData.sideEffectLog.map((se: any, i: number) => (
+              <div key={i} className="bg-white rounded-xl p-4 border border-amber-100 flex items-start gap-3">
+                <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                <div>
+                  <div className="text-sm font-bold text-slate-900">{se.issue}</div>
+                  <div className="text-xs text-slate-500 mt-1">Severity: {se.severity} · {se.date}</div>
                 </div>
-              ))}
-            <div
-              className="flex justify-between pt-3 mt-1"
-              style={{ borderTop: "1.5px solid #e2e6ef" }}
-            >
-              <span
-                style={{
-                  fontSize: "0.88rem",
-                  fontWeight: 600,
-                  color: "#1a1d2e",
-                }}
-              >
-                Monthly Total
-              </span>
-              <span
-                style={{
-                  fontSize: "0.95rem",
-                  fontWeight: 700,
-                  color: "#16a34a",
-                  fontFamily: "var(--font-mono)",
-                }}
-              >
-                {total} SAR
-              </span>
-            </div>
+              </div>
+            ))}
           </div>
-        </div>
-
-        {/* Action Buttons — Conditional on flag */}
-        <div>
-          <p
-            style={{
-              fontSize: "0.68rem",
-              fontWeight: 600,
-              color: "#8892a8",
-              textTransform: "uppercase",
-              letterSpacing: "0.05em",
-              marginBottom: 8,
-              fontFamily: "var(--font-mono)",
-            }}
-          >
-            {isRed && "Red Flag — Blocked"}
-            {isYellow && "Yellow Flag — Requires Confirmation"}
-            {isGreen && "Green Flag — Ready to Approve"}
-            {isPurple && "Titration — Dose Escalation"}
-          </p>
-
-          {isRed ? (
-            <div className="flex gap-2">
-              <button
-                disabled
-                className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl cursor-not-allowed"
-                style={{
-                  backgroundColor: "#e2e6ef",
-                  color: "#8892a8",
-                  fontSize: "0.84rem",
-                  fontWeight: 600,
-                }}
-              >
-                🚫 Approve Blocked
-              </button>
-              <button
-                onClick={handleDecline}
-                className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-white transition-opacity hover:opacity-90"
-                style={{
-                  backgroundColor: "#dc2626",
-                  fontSize: "0.84rem",
-                  fontWeight: 600,
-                }}
-              >
-                ✕ Decline
-              </button>
-            </div>
-          ) : (
-            <div className="flex gap-2">
-              <button
-                onClick={handleApprove}
-                className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-white transition-opacity hover:opacity-90"
-                style={{
-                  backgroundColor: "#16a34a",
-                  fontSize: "0.84rem",
-                  fontWeight: 600,
-                }}
-              >
-                {isYellow
-                  ? "✓ Approve ⚠️"
-                  : isPurple
-                    ? "✓ Approve Dose Increase"
-                    : "✓ Approve & Send Plan"}
-              </button>
-              <button
-                onClick={handleDecline}
-                className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-white transition-opacity hover:opacity-90"
-                style={{
-                  backgroundColor: "#dc2626",
-                  fontSize: "0.84rem",
-                  fontWeight: 600,
-                }}
-              >
-                ✕ Decline
-              </button>
-            </div>
-          )}
-        </div>
+        )}
       </div>
 
-      {/* Warning Modal */}
-      {showWarningModal && (
-        <WarningModal
-          onConfirm={handleWarningConfirm}
-          onClose={() => setShowWarningModal(false)}
-        />
-      )}
-    </>
+      {/* RIGHT - Custom Rx Formula Builder */}
+      <div className="flex flex-col gap-6">
+        <div className="bg-white border border-pink-200 rounded-2xl shadow-sm p-6 sticky top-24">
+          <h3 className="text-lg font-bold text-pink-900 mb-1">Custom Rx Formula Builder</h3>
+          <p className="text-sm text-slate-500 mb-6">Compound a custom prescription</p>
+
+          {/* Formula Type */}
+          <div className="mb-5">
+            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Formula Type</label>
+            <div className="flex flex-wrap gap-2">
+              {formulaTypes.map((ft) => (
+                <button key={ft} onClick={() => setFormulaType(ft)} className={`px-4 py-2 rounded-xl text-sm font-bold transition-colors ${formulaType === ft ? "bg-pink-600 text-white shadow-sm" : "bg-slate-100 text-slate-600 hover:bg-slate-200"}`}>
+                  {ft}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Strength */}
+          <div className="mb-5">
+            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Strength</label>
+            <div className="grid grid-cols-3 gap-2">
+              {strengths.map((s) => (
+                <button key={s} onClick={() => setStrength(s)} className={`px-3 py-3 rounded-xl text-xs font-bold transition-colors text-center ${strength === s ? "bg-pink-100 text-pink-700 border-2 border-pink-400" : "bg-slate-50 text-slate-600 border border-slate-200 hover:bg-slate-100"}`}>
+                  {s}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Active Ingredients */}
+          <div className="mb-5">
+            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Active Ingredients</label>
+            <div className="flex flex-col gap-2">
+              {ingredients.map((ing) => (
+                <div key={ing.name} className="flex items-center justify-between bg-slate-50 rounded-xl p-3 border border-slate-200">
+                  <span className="text-sm font-bold text-slate-900">{ing.name}</span>
+                  <input type="text" defaultValue={`${ing.pct}%`} className="w-16 text-right bg-white border border-slate-200 rounded-lg px-2 py-1 text-sm font-bold text-pink-700 outline-none focus:border-pink-400" />
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Doctor Notes */}
+          <div className="mb-6">
+            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Doctor Notes to Patient</label>
+            <textarea className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-700 outline-none focus:border-pink-400 min-h-[80px] resize-none" placeholder="Apply nightly to clean skin. Expect mild purging for the first 2-4 weeks..." />
+          </div>
+
+          {/* Buttons */}
+          <div className="flex flex-col gap-3">
+            <button className="w-full py-3.5 bg-pink-600 hover:bg-pink-700 text-white rounded-xl font-bold text-sm transition-colors shadow-sm flex items-center justify-center gap-2">
+              ✅ APPROVE & PRESCRIBE
+            </button>
+            <button className="w-full py-3 bg-red-50 text-red-700 hover:bg-red-100 border border-red-200 rounded-xl font-bold text-sm transition-colors flex items-center justify-center gap-2">
+              ❌ DECLINE
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
 
-/* ═══════════════════════════════════════════
-   MAIN PAGE
-   ═══════════════════════════════════════════ */
+// ════════════════════════════════════════
+// 5. HAIR REGROWTH
+// ════════════════════════════════════════
 
-export function CaseDetail() {
-  const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
+function HairRegrowthReview({ patient }: { patient: any }) {
+  const [photoMonth, setPhotoMonth] = useState<"previous" | "current">("current");
+  const [confirmed, setConfirmed] = useState(false);
+  const photos = patient.trackingData?.photoLog || [];
 
-  const caseData = getCaseById(id ?? "");
-  const [showExportModal, setShowExportModal] = useState(false);
+  const crownPhotos = photos.filter((p: any) => p.type === "Crown" || p.type === "Part Line");
+  const hairlinePhotos = photos.filter((p: any) => p.type === "Hairline");
 
-  // Fallback for unknown IDs — try parsing old numeric IDs
-  if (!caseData) {
-    return (
-      <div className="min-h-screen flex items-center justify-center" style={{ fontFamily: "var(--font-sans)" }}>
-        <div className="text-center">
-          <h2 style={{ fontSize: "1.3rem", fontWeight: 700, color: "#1a1d2e" }}>
-            Case Not Found
-          </h2>
-          <p className="mt-2" style={{ fontSize: "0.88rem", color: "#8892a8" }}>
-            The case ID "{id}" does not exist in the system.
-          </p>
-          <Link to="/cases"
-            className="mt-4 px-5 py-2.5 rounded-xl text-white transition-opacity hover:opacity-90"
-            style={{ backgroundColor: "#16a34a", fontSize: "0.84rem", fontWeight: 600 }}
-          >
-            ← Back to Cases
-          </Link>
-        </div>
-      </div>
-    );
-  }
+  const getPhotoForSlot = (arr: any[], slot: "previous" | "current") => {
+    if (arr.length === 0) return null;
+    return slot === "previous" ? arr[0] : arr[arr.length - 1];
+  };
 
   return (
-    <div className="min-h-screen pb-12" style={{ backgroundColor: "#fbfcfd", fontFamily: "var(--font-sans)" }}>
-      <PatientHeader caseData={caseData} setShowExportModal={setShowExportModal} /> {/* Passed setShowExportModal */}
-      <HardStopBanner caseData={caseData} />
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="lg:col-span-2 flex flex-col gap-6">
+        <div className={cardClass}>
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-lg font-bold text-slate-900">Scalp Photo Comparison</h3>
+            <div className="flex bg-slate-100 rounded-xl p-1">
+              <button onClick={() => setPhotoMonth("previous")} className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-colors ${photoMonth === "previous" ? "bg-white text-slate-900 shadow-sm" : "text-slate-500"}`}>
+                Previous Month
+              </button>
+              <button onClick={() => setPhotoMonth("current")} className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-colors ${photoMonth === "current" ? "bg-white text-slate-900 shadow-sm" : "text-slate-500"}`}>
+                Current Month
+              </button>
+            </div>
+          </div>
 
-      {/* Main Grid: 2 columns */}
-      <div
-        className="px-8 mt-6"
-        style={{
-          display: "grid",
-          gridTemplateColumns: "1fr 1fr",
-          gap: 24,
-          alignItems: "start",
-        }}
-      >
-        {/* Left Column */}
-        <div className="flex flex-col gap-5">
-          <DemographicsGrid caseData={caseData} />
-          <FlagsAlerts caseData={caseData} />
-          <AIIntakeSummary caseData={caseData} />
-          <QuestionnaireResponses caseData={caseData} />
-          <CurrentMedications caseData={caseData} />
-          <AITreatmentSuggestion caseData={caseData} />
-        </div>
-
-        {/* Right Column */}
-        <div className="flex flex-col gap-5">
-          <ClinicalDecisionPanel caseData={caseData} />
+          <div className="grid grid-cols-2 gap-6">
+            {/* Crown */}
+            <div>
+              <h4 className="text-sm font-bold text-slate-700 mb-3 uppercase tracking-wider">Crown</h4>
+              <div className="bg-slate-100 border-2 border-dashed border-slate-300 rounded-xl aspect-square flex flex-col items-center justify-center hover:border-amber-400 transition-colors">
+                <Camera className="w-10 h-10 text-slate-400 mb-2" />
+                {(() => {
+                  const photo = getPhotoForSlot(crownPhotos, photoMonth);
+                  return photo ? (
+                    <>
+                      <span className="text-sm font-bold text-slate-600">{photo.type}</span>
+                      <span className="text-[10px] text-slate-400 mt-1">{photo.date}</span>
+                    </>
+                  ) : <span className="text-sm font-bold text-slate-500">No photo</span>;
+                })()}
+              </div>
+            </div>
+            {/* Hairline */}
+            <div>
+              <h4 className="text-sm font-bold text-slate-700 mb-3 uppercase tracking-wider">Hairline</h4>
+              <div className="bg-slate-100 border-2 border-dashed border-slate-300 rounded-xl aspect-square flex flex-col items-center justify-center hover:border-amber-400 transition-colors">
+                <Camera className="w-10 h-10 text-slate-400 mb-2" />
+                {(() => {
+                  const photo = getPhotoForSlot(hairlinePhotos, photoMonth);
+                  return photo ? (
+                    <>
+                      <span className="text-sm font-bold text-slate-600">{photo.type}</span>
+                      <span className="text-[10px] text-slate-400 mt-1">{photo.date}</span>
+                    </>
+                  ) : <span className="text-sm font-bold text-slate-500">No photo</span>;
+                })()}
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Export Modal */}
-      {showExportModal && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-[340px] overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-            <div className="px-5 py-4 flex items-center justify-between border-b border-[#e2e6ef]">
-              <h3 style={{ fontSize: "1rem", fontWeight: 700, color: "#1a1d2e" }}>Export Case Record</h3>
-              <button onClick={() => setShowExportModal(false)} className="text-[#8892a8] hover:text-[#1a1d2e] transition-colors">
-                <X className="w-5 h-5" />
+      <div className="flex flex-col gap-6">
+        <div className="bg-white border border-slate-200 rounded-2xl shadow-sm p-6 sticky top-24">
+          <h3 className="text-lg font-bold text-slate-900 mb-1">Treatment Plan</h3>
+          <p className="text-sm text-slate-500 mb-6">Hair restoration protocol</p>
+
+          {/* Warning */}
+          <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 mb-6 flex items-start gap-2">
+            <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+            <p className="text-xs font-bold text-amber-800 leading-relaxed">🟡 Patient reported mild scalp irritation last month.</p>
+          </div>
+
+          <div className="flex flex-col gap-4 mb-6">
+            <div>
+              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Primary Treatment</label>
+              <select className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold text-slate-900 outline-none focus:border-blue-500">
+                <option>Topical Minoxidil 5%</option>
+                <option>Topical Minoxidil 2%</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Secondary Treatment</label>
+              <select className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold text-slate-900 outline-none focus:border-blue-500">
+                <option>Oral Finasteride 1mg</option>
+                <option>Oral Finasteride 0.5mg</option>
+                <option>No secondary treatment</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Confirmation */}
+          <label className="flex items-start gap-3 bg-slate-50 rounded-xl p-3 border border-slate-200 cursor-pointer mb-6">
+            <input type="checkbox" checked={confirmed} onChange={() => setConfirmed(!confirmed)} className="w-4 h-4 text-blue-600 rounded mt-0.5" />
+            <span className="text-xs font-bold text-slate-700 leading-relaxed">I have reviewed the irritation report and it is safe to continue treatment.</span>
+          </label>
+
+          <button disabled={!confirmed} className={`w-full py-3 rounded-xl font-bold text-sm transition-colors shadow-sm flex items-center justify-center gap-2 ${confirmed ? "bg-emerald-600 hover:bg-emerald-700 text-white" : "bg-slate-100 text-slate-400 cursor-not-allowed"}`}>
+            <CheckCircle2 className="w-4 h-4" /> Approve Treatment
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ════════════════════════════════════════
+// 6. LABS
+// ════════════════════════════════════════
+
+function LabsReview({ patient }: { patient: any }) {
+  const [step, setStep] = useState<1 | 2>(1);
+  const biomarkers = patient.trackingData?.biomarkers || [];
+  const optimalCount = biomarkers.filter((b: any) => b.status === "optimal").length;
+  const abnormalCount = biomarkers.filter((b: any) => b.status === "abnormal").length;
+  const totalCount = biomarkers.length;
+  const optimalPct = totalCount > 0 ? Math.round((optimalCount / totalCount) * 100) : 0;
+
+  const [recs, setRecs] = useState([
+    "Vitamin D3 5,000 IU daily for 3 months",
+    "Retest Vitamin D in 90 days",
+  ]);
+  const [newRec, setNewRec] = useState("");
+
+  return (
+    <div>
+      {/* Step Toggle */}
+      <div className="flex bg-slate-100 rounded-xl p-1 mb-6 max-w-md">
+        <button onClick={() => setStep(1)} className={`flex-1 px-4 py-2.5 rounded-lg text-sm font-bold transition-colors ${step === 1 ? "bg-white text-teal-700 shadow-sm" : "text-slate-500"}`}>
+          Step 1: Approve Order
+        </button>
+        <button onClick={() => setStep(2)} className={`flex-1 px-4 py-2.5 rounded-lg text-sm font-bold transition-colors ${step === 2 ? "bg-white text-teal-700 shadow-sm" : "text-slate-500"}`}>
+          Step 2: Review Results
+        </button>
+      </div>
+
+      {step === 1 ? (
+        /* ─── STEP 1: APPROVE ORDER ─── */
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2 flex flex-col gap-6">
+            <div className={cardClass}>
+              <h3 className="text-lg font-bold text-slate-900 mb-4">Patient Details</h3>
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div><span className="text-slate-500 font-medium">Name:</span> <span className="font-bold text-slate-900">{patient.name}</span></div>
+                <div><span className="text-slate-500 font-medium">Age:</span> <span className="font-bold text-slate-900">{patient.age}</span></div>
+                <div><span className="text-slate-500 font-medium">Selected Plan:</span> <span className="font-bold text-teal-700">{patient.planName}</span></div>
+                <div><span className="text-slate-500 font-medium">Gender:</span> <span className="font-bold text-slate-900">{patient.gender}</span></div>
+              </div>
+            </div>
+            <div className={cardClass}>
+              <h3 className="text-sm uppercase tracking-wider font-bold text-slate-500 mb-4">Safety Check Q&A</h3>
+              <div className="flex flex-col gap-3">
+                {Object.entries(patient.questionnaire || {}).filter(([k]) => typeof k === "string" && k !== "takesNitrates").map(([q, a]) => (
+                  <div key={q} className="bg-slate-50 rounded-xl p-3 border border-slate-100">
+                    <div className="text-xs text-slate-500 font-medium mb-1">{q}</div>
+                    <div className="text-sm font-bold text-slate-900">{String(a)}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+          <div className="flex flex-col gap-6">
+            <div className="bg-white border border-slate-200 rounded-2xl shadow-sm p-6 sticky top-24">
+              <h3 className="text-lg font-bold text-slate-900 mb-4">Tests Included</h3>
+              <div className="grid grid-cols-2 gap-3 mb-6">
+                {["❤️ Heart", "🧬 Hormones", "🫁 Liver", "🩸 Blood Count", "🦴 Vitamins", "🧪 Metabolic"].map((t) => (
+                  <div key={t} className="bg-teal-50 border border-teal-100 rounded-xl p-3 text-center">
+                    <span className="text-sm font-bold text-teal-800">{t}</span>
+                  </div>
+                ))}
+              </div>
+              <button className="w-full py-3.5 bg-teal-600 hover:bg-teal-700 text-white rounded-xl font-bold text-sm transition-colors shadow-sm flex items-center justify-center gap-2">
+                ✅ APPROVE LAB ORDER
               </button>
             </div>
-            <div className="p-5 flex flex-col gap-3">
-              <label className="flex items-center gap-3 p-3 rounded-xl border border-[#e2e6ef] cursor-pointer hover:bg-[#f8f9fb] transition-colors">
-                <input type="radio" name="export-format" defaultChecked className="w-4 h-4 accent-[#16a34a]" />
-                <span style={{ fontSize: "0.86rem", fontWeight: 500, color: "#1a1d2e" }}>PDF Document (.pdf)</span>
-              </label>
-              <label className="flex items-center gap-3 p-3 rounded-xl border border-[#e2e6ef] cursor-pointer hover:bg-[#f8f9fb] transition-colors">
-                <input type="radio" name="export-format" className="w-4 h-4 accent-[#16a34a]" />
-                <span style={{ fontSize: "0.86rem", fontWeight: 500, color: "#1a1d2e" }}>CSV Spreadsheet (.csv)</span>
-              </label>
+          </div>
+        </div>
+      ) : (
+        /* ─── STEP 2: REVIEW RESULTS ─── */
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2 flex flex-col gap-6">
+            <div className={cardClass}>
+              <h3 className="text-lg font-bold text-slate-900 mb-6">Biomarker Results</h3>
+              <div className="flex flex-col gap-3">
+                {biomarkers.map((bm: any) => {
+                  const isAbnormal = bm.status === "abnormal";
+                  return (
+                    <div key={bm.name} className={`rounded-xl p-4 border-2 ${isAbnormal ? "border-red-300 bg-red-50" : "border-slate-100 bg-white"}`}>
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="text-sm font-bold text-slate-900">{bm.name}</div>
+                        <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${isAbnormal ? "bg-red-100 text-red-700" : "bg-emerald-100 text-emerald-700"}`}>
+                          {isAbnormal ? "Abnormal" : "Optimal"}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between mb-3">
+                        <div className={`text-2xl font-bold ${isAbnormal ? "text-red-700" : "text-slate-900"}`}>
+                          {bm.value} <span className="text-sm font-normal text-slate-400">{bm.unit}</span>
+                        </div>
+                        <div className="text-xs text-slate-500">Range: {bm.range}</div>
+                      </div>
+                      {/* CSS Gradient Range Slider */}
+                      <div className="relative h-3 rounded-full overflow-hidden" style={{ background: "linear-gradient(to right, #ef4444 0%, #ef4444 25%, #facc15 25%, #facc15 40%, #22c55e 40%, #22c55e 70%, #facc15 70%, #facc15 85%, #ef4444 85%, #ef4444 100%)" }}>
+                        <div className="absolute top-0 w-3 h-3 bg-white border-2 border-slate-800 rounded-full shadow-md" style={{ left: isAbnormal ? "12%" : "55%", transform: "translateX(-50%)" }} />
+                      </div>
+                      <div className="flex justify-between mt-1 text-[10px] text-slate-400 font-mono">
+                        <span>Low</span><span>Optimal</span><span>High</span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
-            <div className="px-5 py-4 bg-[#f8f9fb] border-t border-[#e2e6ef] flex items-center justify-end gap-3">
-              <button
-                onClick={() => setShowExportModal(false)}
-                className="px-4 py-2 rounded-xl border border-[#e2e6ef] bg-white text-[#1a1d2e] hover:bg-[#f3f4f8] transition-colors"
-                style={{ fontSize: "0.84rem", fontWeight: 500 }}
-              >
-                Cancel
-              </button>
-              <button
-                onClick={() => {
-                  setShowExportModal(false);
-                  toast.success("Export started");
-                }}
-                className="px-5 py-2 rounded-xl text-white transition-opacity hover:opacity-90"
-                style={{ backgroundColor: "#16a34a", fontSize: "0.84rem", fontWeight: 600 }}
-              >
-                Download
+          </div>
+
+          <div className="flex flex-col gap-6">
+            <div className="bg-white border border-slate-200 rounded-2xl shadow-sm p-6 sticky top-24">
+              {/* System Summary */}
+              <div className="bg-teal-50 border border-teal-200 rounded-xl p-4 mb-6 text-center">
+                <div className="text-3xl font-bold text-teal-700">{optimalPct}%</div>
+                <div className="text-xs text-teal-600 font-bold uppercase tracking-wider mt-1">OPTIMAL</div>
+                <div className="text-xs text-slate-500 mt-2">{optimalCount} optimal · {abnormalCount} abnormal</div>
+              </div>
+
+              {/* Action Plan */}
+              <h3 className="text-sm uppercase tracking-wider font-bold text-slate-500 mb-3">Doctor's Action Plan</h3>
+              <div className="flex flex-col gap-2 mb-4">
+                {recs.map((r, i) => (
+                  <div key={i} className="flex items-center justify-between bg-slate-50 rounded-lg p-3 border border-slate-100">
+                    <span className="text-sm font-medium text-slate-700 pr-2">{r}</span>
+                    <button onClick={() => setRecs(recs.filter((_, j) => j !== i))} className="text-slate-400 hover:text-red-500 shrink-0"><X className="w-4 h-4" /></button>
+                  </div>
+                ))}
+              </div>
+              <div className="flex gap-2 mb-6">
+                <input type="text" value={newRec} onChange={(e) => setNewRec(e.target.value)} placeholder="Add recommendation..." className="flex-1 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-teal-500" />
+                <button onClick={() => { if (newRec.trim()) { setRecs([...recs, newRec.trim()]); setNewRec(""); } }} className="bg-teal-100 text-teal-700 rounded-lg px-3 py-2 hover:bg-teal-200 transition-colors"><Plus className="w-4 h-4" /></button>
+              </div>
+
+              {/* Upsell */}
+              <div className="bg-purple-50 border border-purple-200 rounded-xl p-4 mb-6">
+                <h4 className="text-xs uppercase tracking-wider font-bold text-purple-700 mb-3">Suggested Programs</h4>
+                <label className="flex items-start gap-2 cursor-pointer">
+                  <input type="checkbox" className="w-4 h-4 text-purple-600 rounded mt-0.5" />
+                  <span className="text-xs font-bold text-purple-800 leading-relaxed">☑️ Suggest Weight Management program based on rising LDL</span>
+                </label>
+              </div>
+
+              <button className="w-full py-3.5 bg-teal-600 hover:bg-teal-700 text-white rounded-xl font-bold text-sm transition-colors shadow-sm flex items-center justify-center gap-2">
+                📤 PUBLISH RESULTS & ACTION PLAN
               </button>
             </div>
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+// ════════════════════════════════════════
+// DEFAULT FALLBACK
+// ════════════════════════════════════════
+
+function DefaultReview({ patient }: { patient: any }) {
+  return (
+    <div className="flex items-center justify-center h-64 bg-slate-50 border border-slate-200 text-slate-500 rounded-2xl font-bold">
+      Detailed view for {patient.service} coming soon.
+    </div>
+  );
+}
+
+// ════════════════════════════════════════
+// DYNAMIC WRAPPER PAGE
+// ════════════════════════════════════════
+
+export function CaseDetail() {
+  const { activePatient } = usePersona();
+
+  if (!activePatient) return <div>No patient selected.</div>;
+
+  let ViewComponent;
+  switch (activePatient.service) {
+    case "Weight Loss": ViewComponent = WeightLossReview; break;
+    case "Testosterone": ViewComponent = TestosteroneReview; break;
+    case "Menopause": ViewComponent = MenopauseReview; break;
+    case "Skincare": ViewComponent = SkincareReview; break;
+    case "Hair Regrowth": ViewComponent = HairRegrowthReview; break;
+    case "Labs": ViewComponent = LabsReview; break;
+    default: ViewComponent = DefaultReview; break;
+  }
+
+  const initials = activePatient.name.split(" ").map((n: string) => n[0]).join("").substring(0, 2).toUpperCase();
+
+  let avatarBg = "bg-slate-500";
+  if (activePatient.flag === "red") avatarBg = "bg-red-500";
+  else if (activePatient.flag === "purple") avatarBg = "bg-purple-500";
+  else if (activePatient.flag === "yellow") avatarBg = "bg-amber-500";
+  else if (activePatient.flag === "green") avatarBg = "bg-emerald-500";
+
+  return (
+    <div className="min-h-screen bg-[#f3f4f8] font-sans pb-20">
+      {/* Patient Header */}
+      <div className="bg-white border-b border-slate-200 px-6 lg:px-10 py-6">
+        <div className="max-w-[1200px] mx-auto">
+          <Link to="/cases" className="inline-flex items-center gap-1.5 mb-5 text-blue-600 hover:underline text-sm font-bold">
+            <ArrowLeft className="w-4 h-4" /> Back to Cases
+          </Link>
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+            <div className="flex items-center gap-5">
+              <div className={`w-14 h-14 rounded-full flex items-center justify-center text-white text-lg font-bold shadow-sm shrink-0 ${avatarBg}`}>{initials}</div>
+              <div>
+                <div className="flex items-center gap-3 flex-wrap">
+                  <h1 className="text-2xl font-bold text-slate-900">{activePatient.name}</h1>
+                  <span className="px-2.5 py-1 bg-slate-100 text-slate-600 rounded-md text-xs font-bold uppercase tracking-wider">{activePatient.service}</span>
+                  <FlagBadge flag={activePatient.flag} />
+                </div>
+                <div className="text-sm font-medium text-slate-500 mt-1.5 flex items-center gap-3 flex-wrap">
+                  <span className="font-mono bg-slate-50 px-2 py-0.5 rounded text-xs border border-slate-100">CASE-{activePatient.id.split("-")[1]}</span>
+                  <span>{activePatient.age} yrs</span>
+                  <span>•</span>
+                  <span>{activePatient.gender}</span>
+                  <span>•</span>
+                  <span>{activePatient.planName}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="p-6 lg:p-10 max-w-[1200px] mx-auto">
+        <ViewComponent patient={activePatient} />
+      </div>
     </div>
   );
 }

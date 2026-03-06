@@ -1,257 +1,96 @@
-import { useState } from "react";
 import { Search, ChevronDown, ChevronRight } from "lucide-react";
 import { useNavigate } from "react-router";
-import { casesData, flagConfig, type CaseData } from "../data/mockData";
+import { mockPatients } from "../../mockDatabase";
 
-/* ─── Types ─── */
+// Section definitions strictly sorted into the 4 required types
+const SECTIONS = [
+  { flag: 'red', title: '🔴 Urgent', bg: 'bg-red-50', border: 'border-red-200', text: 'text-red-700', badge: 'bg-red-100 text-red-800' },
+  { flag: 'purple', title: '💜 Titration Due', bg: 'bg-purple-50', border: 'border-purple-200', text: 'text-purple-700', badge: 'bg-purple-100 text-purple-800' },
+  { flag: 'yellow', title: '🟡 Pending Review', bg: 'bg-orange-50', border: 'border-orange-200', text: 'text-orange-700', badge: 'bg-orange-100 text-orange-800' },
+  { flag: 'green', title: '🟢 Standard Review', bg: 'bg-emerald-50', border: 'border-emerald-200', text: 'text-emerald-700', badge: 'bg-emerald-100 text-emerald-800' }
+] as const;
 
-interface QueueSection {
-  flag: "red" | "purple" | "yellow" | "green";
-  cases: CaseData[];
+function getInitials(name: string) {
+  return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
 }
 
-/* Build sections from mock data */
-const sectionOrder: QueueSection["flag"][] = ["red", "purple", "yellow", "green"];
-
-const sections: QueueSection[] = sectionOrder
-  .map((flag) => ({
-    flag,
-    cases: casesData.filter((c) => c.flag === flag),
-  }))
-  .filter((s) => s.cases.length > 0);
-
-/* ─── Helpers ─── */
-
-function highlightDose(text: string) {
-  const match = text.match(/(.*→\s*)(\S+)/);
-  if (!match) return <span>{text}</span>;
-  return (
-    <span>
-      {match[1]}
-      <span style={{ color: "#7c3aed", fontWeight: 600 }}>{match[2]}</span>
-    </span>
-  );
+function getAlertText(patient: typeof mockPatients[0]) {
+  if (patient.flag === 'red' && patient.questionnaire.takesNitrates) return 'Takes nitrates';
+  if (patient.flag === 'red') return 'Requires immediate attention';
+  if (patient.flag === 'purple') return 'Action needed: ' + patient.status;
+  if (patient.flag === 'yellow') return 'Pending review';
+  return 'No issues';
 }
-
-function FilterButton({ label, options = ["All"] }: { label: string, options?: string[] }) {
-  return (
-    <div className="relative">
-      <select
-        className="appearance-none flex items-center gap-1.5 pl-3.5 pr-8 py-2 rounded-xl border border-[#e2e6ef] bg-white text-[#1a1d2e] hover:bg-[#f3f4f8] transition-colors cursor-pointer outline-none focus:border-[#2563eb]"
-        style={{ fontSize: "0.82rem", fontWeight: 500 }}
-      >
-        <option value="" disabled selected hidden>{label}</option>
-        {options.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-      </select>
-      <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#8892a8] pointer-events-none" />
-    </div>
-  );
-}
-
-/* ─── Row ─── */
-
-function CaseRowItem({
-  caseItem,
-  isLast,
-}: {
-  caseItem: CaseData;
-  isLast: boolean;
-}) {
-  const navigate = useNavigate();
-  const cfg = flagConfig[caseItem.flag];
-
-  return (
-    <div
-      onClick={() => navigate(`/cases/${caseItem.id}`)}
-      className={`flex items-center gap-4 px-5 py-3.5 ${!isLast ? "border-b border-[#e2e6ef]" : ""
-        } hover:bg-[#fafbfc] transition-colors cursor-pointer`}
-    >
-      {/* Avatar */}
-      <div
-        className="w-9 h-9 rounded-full flex items-center justify-center text-white shrink-0"
-        style={{
-          backgroundColor: cfg.color,
-          fontSize: "0.72rem",
-          fontWeight: 600,
-        }}
-      >
-        {caseItem.initials}
-      </div>
-
-      {/* Info */}
-      <div className="min-w-[140px]">
-        <p style={{ fontSize: "0.85rem", fontWeight: 600, color: "#1a1d2e" }}>
-          {caseItem.patientName}
-        </p>
-        <p style={{ fontSize: "0.75rem", color: "#8892a8" }}>
-          <span style={{ fontFamily: "var(--font-mono)" }}>{caseItem.caseId}</span>
-          {" · "}
-          {caseItem.type}
-        </p>
-      </div>
-
-      {/* Alert */}
-      <div className="flex-1 min-w-0">
-        <p
-          style={{
-            fontSize: "0.82rem",
-            fontWeight: 600,
-            color:
-              caseItem.flag === "green"
-                ? "#16a34a"
-                : caseItem.flag === "purple"
-                  ? "#1a1d2e"
-                  : cfg.color,
-          }}
-        >
-          {caseItem.flag === "purple" ? highlightDose(caseItem.alert) : caseItem.alert}
-          {caseItem.flag === "red" && <span className="ml-1">🔴</span>}
-        </p>
-      </div>
-
-      {/* Badge */}
-      <span
-        className="px-2.5 py-1 rounded-full shrink-0"
-        style={{
-          backgroundColor: cfg.badgeBg,
-          color: cfg.color,
-          fontSize: "0.68rem",
-          fontWeight: 700,
-          fontFamily: "var(--font-mono)",
-          letterSpacing: "0.03em",
-        }}
-      >
-        {cfg.badge}
-      </span>
-
-      {/* Timer or Status */}
-      {caseItem.timer && (
-        <span
-          className="shrink-0"
-          style={{
-            fontSize: "0.78rem",
-            fontWeight: 600,
-            fontFamily: "var(--font-mono)",
-            color: caseItem.isUrgent ? "#dc2626" : "#8892a8",
-            minWidth: 80,
-            textAlign: "right",
-          }}
-        >
-          {caseItem.timer}
-        </span>
-      )}
-      {caseItem.status && (
-        <span
-          className="shrink-0"
-          style={{
-            fontSize: "0.78rem",
-            color: "#8892a8",
-            minWidth: 90,
-            textAlign: "right",
-          }}
-        >
-          {caseItem.status}
-        </span>
-      )}
-    </div>
-  );
-}
-
-/* ─── Collapsible Section ─── */
-
-function QueueCard({ section }: { section: QueueSection }) {
-  const [collapsed, setCollapsed] = useState(false);
-  const cfg = flagConfig[section.flag];
-
-  return (
-    <div
-      className="bg-white overflow-hidden"
-      style={{
-        border: `1px solid ${cfg.border}`,
-        borderRadius: 10,
-        marginBottom: 12,
-      }}
-    >
-      {/* Clickable Header */}
-      <button
-        onClick={() => setCollapsed((v) => !v)}
-        className="w-full flex items-center justify-between px-5 py-3 text-left transition-colors hover:opacity-90"
-        style={{ backgroundColor: cfg.bg }}
-      >
-        <p className="flex items-center gap-2" style={{ fontSize: "0.85rem", fontWeight: 700, color: cfg.color }}>
-          {collapsed ? (
-            <ChevronRight className="w-4 h-4 shrink-0" />
-          ) : (
-            <ChevronDown className="w-4 h-4 shrink-0" />
-          )}
-          {cfg.emoji} {cfg.sectionTitle}
-        </p>
-        <span style={{ fontSize: "0.78rem", color: "#8892a8", fontWeight: 500 }}>
-          {section.cases.length} {section.cases.length === 1 ? "case" : "cases"}
-        </span>
-      </button>
-
-      {/* Collapsible Rows */}
-      {!collapsed &&
-        section.cases.map((caseItem, idx) => (
-          <CaseRowItem
-            key={caseItem.id}
-            caseItem={caseItem}
-            isLast={idx === section.cases.length - 1}
-          />
-        ))}
-    </div>
-  );
-}
-
-/* ─── Page ─── */
 
 export function CasesQueue() {
+  const navigate = useNavigate();
+
+  // Filter out completely Active patients that require no review
+  const queuePatients = mockPatients.filter(p => p.status !== "Active");
+
   return (
-    <div className="min-h-screen" style={{ fontFamily: "var(--font-sans)" }}>
-      {/* Top Bar */}
-      <div className="flex items-center justify-between px-8 py-5 bg-white border-b border-[#e2e6ef]">
-        <h2 style={{ fontSize: "1.3rem", fontWeight: 700, color: "#1a1d2e" }}>
-          Cases
-        </h2>
-
-        <div className="flex items-center gap-2.5">
-          <div
-            className="flex items-center gap-2 px-3.5 py-2 rounded-xl border border-[#e2e6ef] bg-white"
-            style={{ minWidth: 160 }}
-          >
-            <Search className="w-4 h-4 text-[#8892a8]" />
-            <input
-              type="text"
-              placeholder="Search by name or ID..."
-              className="bg-transparent outline-none border-none text-[#8892a8] placeholder-[#8892a8] w-full"
-              style={{ fontSize: "0.82rem" }}
-            />
+    <div className="min-h-screen bg-[#f3f4f8] p-6 lg:p-10 font-sans">
+      <div className="max-w-[1200px] mx-auto">
+        <div className="flex flex-col md:flex-row md:items-center justify-between pb-8">
+          <div>
+            <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Cases Queue</h1>
+            <p className="text-sm text-slate-500 mt-1 font-medium">Prioritized review items</p>
           </div>
-
-          <FilterButton label="Priority" options={["All Priorities", "Urgent", "High", "Normal"]} />
-          <FilterButton label="Service" options={[
-            "All Services",
-            "Weight Loss",
-            "Hair Loss",
-            "Hair Regrowth",
-            "Testosterone",
-            "Mental Health",
-            "Sexual Health",
-            "Grow Fuller Hair",
-            "Relieve Menopause",
-            "Ease Menopause",
-            "Reduce Anxiety"
-          ]} />
-          <FilterButton label="Status" options={["All Statuses", "Pending Review", "Needs Follow-up"]} />
         </div>
-      </div>
 
-      {/* Queue Sections */}
-      <div className="p-8">
-        {sections.map((section) => (
-          <QueueCard key={section.flag} section={section} />
-        ))}
+        <div className="flex flex-col gap-6">
+          {SECTIONS.map(section => {
+            const cases = queuePatients.filter(p => p.flag === section.flag);
+            if (cases.length === 0) return null;
+
+            return (
+              <div key={section.flag} className={`bg-white rounded-2xl border ${section.border} overflow-hidden shadow-sm`}>
+                <div className={`px-6 py-4 ${section.bg} border-b ${section.border} flex justify-between items-center`}>
+                  <h2 className={`font-bold ${section.text} text-sm uppercase tracking-wider`}>{section.title}</h2>
+                  <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${section.badge}`}>
+                    {cases.length} {cases.length === 1 ? 'Case' : 'Cases'}
+                  </span>
+                </div>
+                <div className="divide-y divide-slate-100">
+                  {cases.map(p => (
+                    <div key={p.id} className="p-4 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-slate-50 transition-colors">
+                      <div className="flex items-center gap-4">
+                        <div className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-white shrink-0 ${section.flag === 'red' ? 'bg-red-500' :
+                            section.flag === 'purple' ? 'bg-purple-500' :
+                              section.flag === 'yellow' ? 'bg-amber-500' : 'bg-emerald-500'
+                          }`}>
+                          {getInitials(p.name)}
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <h3 className="font-bold text-slate-900">{p.name}</h3>
+                            <span className="text-xs font-mono text-slate-400 bg-slate-100 px-2 py-0.5 rounded">CASE-{p.id.split('-')[1]}</span>
+                          </div>
+                          <div className="flex items-center gap-3 mt-1.5">
+                            <span className="px-2.5 py-1 rounded-md bg-slate-100 text-slate-600 text-[11px] font-bold uppercase tracking-wider">
+                              {p.service}
+                            </span>
+                            <span className="text-sm text-slate-500 font-medium whitespace-nowrap">
+                              {getAlertText(p)}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <button
+                        onClick={() => navigate(`/cases/${p.id}`)}
+                        className="flex items-center justify-center gap-2 px-6 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-all shadow-sm w-full sm:w-auto"
+                      >
+                        Review Case
+                        <ChevronRight className="w-4 h-4 text-slate-400" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            );
+          })}
+        </div>
       </div>
     </div>
   );

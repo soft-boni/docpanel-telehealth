@@ -5,7 +5,7 @@ import { Toaster } from "sonner";
 export function Layout() {
   return (
     <div
-      className="flex h-screen w-screen overflow-hidden bg-[var(--app-bg)]"
+      className="flex h-screen w-screen overflow-hidden bg-[var(--app-bg)] pt-12"
       style={{ fontFamily: "var(--font-sans)" }}
     >
       <Sidebar />
